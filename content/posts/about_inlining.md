@@ -2,7 +2,6 @@
 author = "longlp"
 title = "About inlining"
 date = "2021-11-20"
-description = "Yet another pamphlet about inlining"
 tags = [
     "cpp",
 ]
