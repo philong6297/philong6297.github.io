@@ -1,7 +1,7 @@
 +++
 author = "longlp"
 title = "Dymanic Memory Cost: Allocation Speed"
-date = "2021-11-20"
+date = "2022-12-31"
 tags = [
     "cpp",
 ]
