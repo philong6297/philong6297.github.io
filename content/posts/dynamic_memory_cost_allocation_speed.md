@@ -7,7 +7,29 @@ tags = [
 ]
 +++
 
-# Introduction
+- [1. Introduction](#1-introduction)
+- [2. Why are ***malloc*** and ***free*** slow?](#2-why-are-malloc-and-free-slow)
+  - [2.1. Memory fragmentation](#21-memory-fragmentation)
+  - [2.2. Thread Synchronization](#22-thread-synchronization)
+- [3. Why is the program slow?](#3-why-is-the-program-slow)
+- [4. Optimization Strategies](#4-optimization-strategies)
+  - [4.1. Vector of pointers](#41-vector-of-pointers)
+  - [4.2. Custom allocator for your data structure](#42-custom-allocator-for-your-data-structure)
+    - [4.2.1. An example STL allocator](#421-an-example-stl-allocator)
+    - [4.2.2. Per-Instance Allocator](#422-per-instance-allocator)
+    - [4.2.3. Tuning the custom allocator](#423-tuning-the-custom-allocator)
+  - [4.3. Memory chunk caching for producer-consumer](#43-memory-chunk-caching-for-producer-consumer)
+  - [4.4. Small Size Optmizations](#44-small-size-optmizations)
+  - [4.5. Other approaches for fighting memory fragmentation](#45-other-approaches-for-fighting-memory-fragmentation)
+- [5. System Allocators](#5-system-allocators)
+  - [5.1. Allocators on Linux](#51-allocators-on-linux)
+  - [5.2. The system allocator test](#52-the-system-allocator-test)
+  - [5.3. A few more words on using allocators in your program](#53-a-few-more-words-on-using-allocators-in-your-program)
+- [6. Final words](#6-final-words)
+- [7. Further Read](#7-further-read)
+
+
+# 1. Introduction
 
 When it comes to memory usage, there are two types of programs. The first type are programs that **allocate memory in large blocks**. Normally, these programs know how much memory they will need and can allocate it in advance. They hold their memory in arrays or vectors and typically access it linearly (but not always so). These programs might even use dynamic memory, but when they do, typically they call malloc only a few times during the lifetime of the program. In other words, memory allocation and memory organization are not typically a limiting factor in these programs.
 
@@ -21,11 +43,12 @@ The other thing is **access speed, i.e. how fast can you access the memory retur
 
 In this post we will talk about **allocation speed**, and **access speed** will be the topic of a follow-up post.
 
-# Why are ***malloc*** and ***free*** slow?
+
+# 2. Why are ***malloc*** and ***free*** slow?
 
 To answer the above question, we need to first understand how ***malloc*** or ***free*** are commonly implemented. Unless you specifically made the effort, their implementations are provided by the C standard library.
 
-## Memory fragmentation
+## 2.1. Memory fragmentation
 
 For most system allocators, the allocator requests one or more large blocks of memory from the operating system. Out of one such block the allocator carves out smaller chunks to service the requests made by programs. There are many algorithms on how to manage smaller chunks out of a large block and they differ in speed (will the allocation be fast) and memory consumption.
 
@@ -75,7 +98,7 @@ This is a very simplified example and you can imagine what happens when the bloc
 
 **Memory fragmentation is a serious problem for long-running systems**. It causes programs to become slower and slower or to run out of memory. Some time ago we were working on a TV box project. There was a test that changes a channel every 10 seconds for 24 hours. At the beginning of the test, it took 1 second for the video to start running after the channel change command. After 24 hours it took 7 seconds to do the same. Reason? Memory fragmentation.
 
-## Thread Synchronization
+## 2.2. Thread Synchronization
 
 In the case of multithreaded programs (and nowadays many programs are multithreaded), ***malloc*** and ***free*** must be thread-safe. The simplest way to make them thread-safe is to introduce mutexes to protect the critical section of those functions, but this comes with a cost. **Mutex locks and unlocks are expensive operations on multiprocessor systems, and even though the allocators can quickly find a memory block of appropriate size, synchronization eats away the speed advantage**.
 
@@ -88,7 +111,7 @@ Both of the above strategies work well for most programs, but in the case of pro
 
 If your program is single-threaded, the allocator might unnecessarily perform thread synchronization that is not needed. In case the performance is important, investigate other allocators that don’t have such an issue.
 
-# Why is the program slow?
+# 3. Why is the program slow?
 
 There are basically three reasons why your program is slow with regards to the system allocator:
 
@@ -100,11 +123,11 @@ There are basically three reasons why your program is slow with regards to the s
 
 Fixing any of the above reasons for the slower allocations should in principle make your program faster. Also, note that the three items listed are not completely independent of each other, e.g. decreasing the pressure on the system allocator almost always means less memory fragmentation.
 
-# Optimization Strategies
+# 4. Optimization Strategies
 
 In the following few sections, we will present some techniques that you can use in your program to make it run faster with regards to its usage of dynamic memory. **Most of the techniques presented here require that you know the domain and the lifetime of your projects**. What we will be doing is “fine-tuning” your application, not propose a technique to rewrite the system allocator in a more efficient manner.
 
-## Vector of pointers
+## 4.1. Vector of pointers
 In C++, polymorphism can be achieved only using vectors of pointers. However, such a solution puts a huge pressure on the system allocator. Whether it is a vector of raw pointers (```vector<object*>```) or vector of smart pointers (```vector<unique_ptr<object>>```), the result is the same: **for each pointer in the vector, a call to a new (malloc) will need to be made**. Imagine a vector with millions of elements, this translates to million calls to new.
 
 When you have large vector(s) of pointers, you will see performance degradation as the data set grows. This is related both to memory fragmentation and the number of calls to the system allocator.
@@ -115,7 +138,7 @@ Vector of objects approach works only if you have one type. However, if you need
 
 This approach can drastically decrease the number of calls to the system allocator.
 
-## Custom allocator for your data structure
+## 4.2. Custom allocator for your data structure
 
 **Some STL data structures**, notably trees (```std::set``` and ```std::map```), but also hash maps (```std::unordered_set``` and ```std::unordered_map```) and vectors of pointers **will make many requests for small memory chunks from the systems allocator**. This increases memory fragmentation and as a consequence leads to lower performance. **One of the ways to mitigate some of the problems related is to use a custom memory allocator for your STL data structure**.
 
@@ -137,7 +160,7 @@ Please note that, in the case of STL allocators, all the data structures of the 
 - **It is much easier to guarantee certain requirements about the allocation**. For example, if two consecutive calls to ```allocate``` return two neighboring chunks in memory, this increases data locality and data access speed later when the data is accessed.
 In conclusion, the only reason why would you want to use a custom allocator for your data structure is speed!
 
-### An example STL allocator
+### 4.2.1. An example STL allocator
 
 STL data structure ``std::map`` (and other STL containers) allows you to specify an allocator as one of the template parameters. If you look up the full definition of ``std::map`` type, you will see the following:
 
@@ -202,7 +225,7 @@ But if we were removing elements from ``std::map``, even though ``std::map`` wou
 
 **This type of allocator, where the memory is released back to the system only when the allocator is destroyed, is called a zone allocator (also called bump allocator)**. It can be used as an allocator for data structures that change very little after they are created. Since ***deallocate*** is a no-op, destruction is very fast.
 
-### Per-Instance Allocator
+### 4.2.2. Per-Instance Allocator
 
 All STL data structures of the same type share one instance of the allocator. And most of the time, this is quite reasonable. For small types (``std::unique_ptr`` or ``std::string``), it doesn’t make sense to have a per-instance allocator, since a per-instance allocator increases the type’s size.
 
@@ -214,11 +237,11 @@ Imagine a class ``student`` which is kept in a hash map. The name of the type wo
 
 **Unfortunately, STL data structures do not support per-instance allocators, so in this case you would need to rewrite your data structure to support per-instance allocators.**
 
-### Tuning the custom allocator
+### 4.2.3. Tuning the custom allocator
 
 As we already said, a custom allocator dedicated to a data structure will allow you to decrease memory fragmentation and increase data locality. But it also comes with additional benefits. **A custom allocator can be adjusted to a specific environment for maximum performance**. Here are a few examples:
 
-- **Static allocator**: if your data structure is small most of the time, e.g. a vector that has most of the time one or two elements, your allocator can be preloaded with enough space to store up to two elements. In case there is a need for more memory, the allocator can request it from the system allocator. This is an optimization for a common case (Stack allocator is closely related to [small size optimizations](#small-size-optmizations) we talk about later in this post), but can substantially decrease the number of calls to the system allocator. This tip applies to per-instance allocators.
+- **Static allocator**: if your data structure is small most of the time, e.g. a vector that has most of the time one or two elements, your allocator can be preloaded with enough space to store up to two elements. In case there is a need for more memory, the allocator can request it from the system allocator. This is an optimization for a common case (Stack allocator is closely related to [small size optimizations](#44-small-size-optmizations) we talk about later in this post), but can substantially decrease the number of calls to the system allocator. This tip applies to per-instance allocators.
 
 - **Zone allocator**: as we already explained, a zone allocator doesn’t deallocate memory, instead all the memory is released when the allocator is destroyed. Very useful for data structures that are mostly static after creation but which allocate a large number of chunks. This approach works for both STL allocators and per-instance allocators.
 
@@ -226,7 +249,7 @@ As we already said, a custom allocator dedicated to a data structure will allow 
 
 **Knowing your domain will help you pick the right strategy for your custom allocator.**
 
-## Memory chunk caching for producer-consumer
+## 4.3. Memory chunk caching for producer-consumer
 
 **Imagine a scenario where a producer thread allocates an object and sends it to the consumer thread. After processing the object, the consumer thread destroys the object and releases the memory back to the operating system.**
 
@@ -332,7 +355,7 @@ public:
 ```
 This will make every object created using ``new`` and destroyed using ``delete`` allocated using memory from the memory pool.
 
-## Small Size Optmizations
+## 4.4. Small Size Optmizations
 Let’s take an example of a custom class ``small_int_vector`` that stores integers. And, let’s say, that in 99% of the time an instance this class will store zero, one, or two elements. Here is the source code of a naive implementation:
 
 ```cpp
@@ -436,7 +459,7 @@ If the most significant bit in ``m_size`` is zero, we are using the preallocated
 
 This approach is used in several places. For example, [libc++ implements std::string in this way](https://joellaity.com/2020/01/31/string.html).
 
-## Other approaches for fighting memory fragmentation
+## 4.5. Other approaches for fighting memory fragmentation
 
 Here we present an few other approaches you can use to fight memory fragmentation:
 
@@ -445,7 +468,7 @@ Here we present an few other approaches you can use to fight memory fragmentatio
 - **Change the system allocator**: there are several open-source system allocators that can be used instead of the built-in one, and which promise faster allocation speed, better memory usage, less fragmentation or better data locality. We talk about this in the next chapter.
 
 
-# System Allocators
+# 5. System Allocators
 
 The techniques mentioned up to this point are domain-specific. **In this section we talk about another way to speed up your program: by using a better system allocator**. On Linux, there are several open-source allocators that try to solve the problem of efficient allocation and deallocation, but no allocator, as far as I know, can solve all the problems completely.
 
@@ -456,7 +479,7 @@ When you are picking a system allocator for your system, there are four properti
 - **Memory fragmentation**: Some allocators are more prone to memory fragmentation issues than others, which can impact the speed of long-running applications.
 - **Cache locality**: when the chunk gets out of the allocator, we would like for it to be in the data cache since this increases access speed later. Allocators that pack their data in smaller blocks and avoid memory losses will generally have better cache locality properties. We will talk about this in a follow-up article since this is a topic of its own accord.
 
-## Allocators on Linux
+## 5.1. Allocators on Linux
 
 **When you use malloc and free in your program (or new and delete in C++), normally it is the C standard library that implements those functions**. Its allocator is called ***GNU allocator*** and it is based on ***ptmalloc***. Apart from it, there are several other open-source allocators commonly used on Linux: [tcmalloc](https://goog-perftools.sourceforge.net/doc/tcmalloc.html) (by Google), [jemalloc](https://jemalloc.net/) (by Facebook), [mimalloc](https://github.com/microsoft/mimalloc) (by Microsoft), [hoard allocator](http://hoard.org/), [ptmalloc](http://www.malloc.de/en/) and [dlmalloc](https://gee.cs.oswego.edu/dl/html/malloc.html).
 
@@ -476,13 +499,13 @@ $ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4  ./my_program
 
 In the above example, we use ``LD_PRELOAD`` to overwrite the GNU allocator with ``tcmalloc``.
 
-## The system allocator test
+## 5.2. The system allocator test
 
 Well, this time there will not be any experiments. The reason is simple: real-world programs differ too much from one another. An allocator that performs well under one load might have different behavior under another load.
 
 If you are interested in seeing the number, I suggest you visit [Testing Memory Allocators: ptmalloc2 vs tcmalloc vs hoard vs jemalloc While Trying to Simulate Real-World Loads](http://ithare.com/testing-memory-allocators-ptmalloc2-tcmalloc-hoard-jemalloc-while-trying-to-simulate-real-world-loads/). The author has compared several allocators on a test load that tries to simulate a real-world load. We will not repeat the results of his analysis here, but his conclusion matches ours: allocators are similar to one another and testing your particular application is more important than relying on synthetic benchmarks.
 
-## A few more words on using allocators in your program
+## 5.3. A few more words on using allocators in your program
 
 **All the allocators can be fine-tuned to run better on a particular system**, but the default configuration should be enough for most use cases. Fine-tuning can be done at compile-time or run-time, through environment variables, configuration files or compilation options.
 
@@ -490,7 +513,7 @@ Normally the allocators provide implementations for ***malloc*** and ***free*** 
 
 However, it is possible to keep default ***malloc*** and ***free*** implementations together with custom implementations provided by your chosen allocator. Allocators can provide prefixed versions of ***malloc*** and ***free*** for this purpose. For example, ``jemalloc`` allows you to provide a custom prefix for ***malloc*** and ***free***. If you specify prefix ``je_``, the allocator will provide functions ``je_malloc`` and ``je_free``. In this case, ***malloc*** and ***free*** will be left unchanged, and you can use ``je_malloc`` and ``je_free`` to allocate memory only for some parts of your program through ``jemalloc``.
 
-# Final words
+# 6. Final words
 
 We presented several techniques on how to make your program allocate memory faster. **Off-the-shelf allocators have the benefit of being very easy to set up and you can see the improvements within minutes**. However, you will need to introduce new libraries to your program which can sometimes pose a problem.
 
@@ -498,5 +521,5 @@ We presented several techniques on how to make your program allocate memory fast
 
 **Each of these techniques solves the question of allocation a bit differently and at the end of the day, it is your program and your requirements that will help you pick the best one.**
 
-# Further Read
+# 7. Further Read
 [Scaleable memory allocation using jemalloc](https://www.facebook.com/notes/10158791475077200/)
