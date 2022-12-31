@@ -31,8 +31,8 @@ For most system allocators, the allocator requests one or more large blocks of m
 
 <figure>
   <img decoding="async"
-    src="../assets/dynamic_memory_cost_allocation_speed/allocator-arena.png"
-    data-src="../assets/dynamic_memory_cost_allocation_speed/allocator-arena.png"
+    src="/posts/dynamic_memory_cost_allocation_speed/allocator-arena.png"
+    data-src="/posts/dynamic_memory_cost_allocation_speed/allocator-arena.png"
     alt="">
   <figcaption>
     <i>
@@ -47,8 +47,8 @@ To illustrate memory fragmentation, consider the following scenario. The heap co
 
 <figure>
   <img decoding="async"
-    src="../assets/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
-    data-src="../assets/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
+    src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
+    data-src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
     alt="">
   <figcaption>
     <i>
@@ -63,8 +63,8 @@ This is a very simplified example and you can imagine what happens when the bloc
 
 <figure>
   <img decoding="async"
-    src="../assets/dynamic_memory_cost_allocation_speed/memory-fragmentation-real-life.png"
-    data-src="../assets/dynamic_memory_cost_allocation_speed/memory-fragmentation-real-life.png"
+    src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-real-life.png"
+    data-src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-real-life.png"
     alt="">
   <figcaption>
     <i>

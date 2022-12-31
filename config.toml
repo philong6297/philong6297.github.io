@@ -21,6 +21,10 @@ enableEmoji = true
     noClasses = true
     style = 'dracula'
     tabWidth = 2
+  [markup.goldmark.renderer]
+    hardWraps = false
+    unsafe = true
+    xhtml = true
 # Enable Disqus comments
 # disqusShortname = "yourdiscussshortname"
 
