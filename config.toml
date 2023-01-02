@@ -29,7 +29,7 @@ enableEmoji = true
 # disqusShortname = "yourdiscussshortname"
 
 [params]
-author = "Long Phi Le"
+author = "Phi-Long Le"
 description = "Personal blog"
 keywords = "blog,developer,personal"
 info = ["C++ Enthusiast"]
