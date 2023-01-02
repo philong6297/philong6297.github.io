@@ -1,6 +1,6 @@
 +++
 author = "longlp"
-title = "Dymanic Memory Cost and Optmization Strategies: Allocation Speed"
+title = "Dymanic Memory Cost and Optimization Strategies: Allocation Speed"
 date = "2022-12-31"
 tags = [
     "cpp",
