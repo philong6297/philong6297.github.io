@@ -77,7 +77,7 @@ Given the following scenario, the heap consists of 5 chunks. The program allocat
     alt="">
   <figcaption>
     <i>
-      Memory Fragmentation Illustration. Each block is 16 bytes in size. Green blocks are marked as allocated, and white blocks are available.
+      Memory Fragmentation Illustration. Each block is 16 bytes in size. Green blocks are marked as allocated, and red blocks are available.
     </i>
   </figcaption>
 </figure>
