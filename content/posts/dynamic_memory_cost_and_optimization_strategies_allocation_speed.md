@@ -56,8 +56,8 @@ For most scenes, the allocator demands large blocks of memory from the OS. From 
 
 <figure>
   <img decoding="async"
-    src="/posts/dynamic_memory_cost_allocation_speed/allocator-arena.png"
-    data-src="/posts/dynamic_memory_cost_allocation_speed/allocator-arena.png"
+    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/allocator-arena.png"
+    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/allocator-arena.png"
     alt="">
   <figcaption>
     <i>
@@ -72,8 +72,8 @@ Given the following scenario, the heap consists of 5 chunks. The program allocat
 
 <figure>
   <img decoding="async"
-    src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
-    data-src="/posts/dynamic_memory_cost_allocation_speed/memory-fragmentation-illustration.png"
+    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/memory-fragmentation-illustration.png"
+    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/memory-fragmentation-illustration.png"
     alt="">
   <figcaption>
     <i>
@@ -131,8 +131,8 @@ STL data structures like trees (e.g. ``set`` and ``map``), hash maps (e.g. ``uno
 
 <figure>
   <img decoding="async"
-    src="/posts/dynamic_memory_cost_allocation_speed/vector-interface.png"
-    data-src="/posts/dynamic_memory_cost_allocation_speed/vector-interface.png"
+    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png"
+    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png"
     alt="">
   <figcaption>
     <i>
