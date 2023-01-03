@@ -23,410 +23,410 @@ The <strong>access speed</strong> will be the topic of a follow-up post.</p><h1 
 <a class=heading-link href=#42-custom-stl-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>STL data structures like trees (e.g. <code>set</code> and <code>map</code>), hash maps (e.g. <code>unordered_set</code> and <code>unordered_map</code>), and vectors of pointers <strong>make a large number of requests for memory chunks from the allocator</strong>, increases memory fragmentation, as a consequence, decreases the performance.</p><p><strong>Fortunately, STL data structures accept user-specified <code>Allocator</code> as one of the template arguments</strong>.</p><figure><img decoding=async src=/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png data-src=/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png alt><figcaption><i>Template interface of <code>std::vector</code>. Issued in 01/02/2023.</i></figcaption></figure><p>STL data structures call special methods <code>allocate</code> to request memory and <code>deallocate</code> to release the unneeded memory from the <code>Allocator</code>. Users can specify their own <code>Allocator</code> (by implementing these functions and satisfying the <a href=https://en.cppreference.com/w/cpp/named_req/Allocator>STL <code>Allocator</code> requirements</a> ) for their own needs.</p><h3 id=421-stl-allocators---per-type-allocator>4.2.1. STL Allocators - Per-Type Allocator
 <a class=heading-link href=#421-stl-allocators---per-type-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h3><p>Given <code>std::allocator</code> and <code>CustomStatelessAllocator</code> are stateless allocators, <code>CustomStatefulAllocator</code> is a stateful allocator. Consider the information:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span> vector_a;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, std<span style=color:#ff79c6>::</span>allocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> vector_b;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, CustomStatelessAllocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> vector_c;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, CustomStatefulAllocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> vector_d;
+<span class=sr-only>Link to heading</span></a></h3><p>Given <code>std::allocator</code> and <code>CustomStatelessAllocator</code> are stateless allocators, <code>CustomStatefulAllocator</code> is a stateful allocator. Consider the information:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>vector</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span> <span style=color:#e06c75>vector_a</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>vector</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>vector_b</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>vector</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>CustomStatelessAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>vector_c</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>vector</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>CustomStatefulAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>vector_d</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>set<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span> set_a;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>set<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>, std<span style=color:#ff79c6>::</span>allocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> set_b;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>set<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>, CustomStatelessAllocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> set_c;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>set<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>, CustomStatefulAllocator<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;&gt;</span> set_d;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>set</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span> <span style=color:#e06c75>set_a</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>set</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>set_b</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>set</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>, <span style=color:#e06c75>CustomStatelessAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>set_c</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>set</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>, <span style=color:#e06c75>CustomStatefulAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;&gt;</span> <span style=color:#e06c75>set_d</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span><span style=color:#ff79c6>&gt;</span> map_a;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>,
-</span></span><span style=display:flex><span>         std<span style=color:#ff79c6>::</span>allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span>, <span style=color:#ff79c6>&gt;</span> <span style=color:#8be9fd>bool</span><span style=color:#ff79c6>&gt;&gt;</span>
-</span></span><span style=display:flex><span>    map_b;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>,
-</span></span><span style=display:flex><span>         CustomStatelessAllocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span><span style=color:#ff79c6>&gt;&gt;&gt;</span>
-</span></span><span style=display:flex><span>    map_c;
-</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span>, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>char</span><span style=color:#ff79c6>&gt;</span>,
-</span></span><span style=display:flex><span>         CustomStatefulAllocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span>, <span style=color:#8be9fd>bool</span><span style=color:#ff79c6>&gt;&gt;&gt;</span>
-</span></span><span style=display:flex><span>    map_d;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span><span style=color:#56b6c2>&gt;</span> <span style=color:#e06c75>map_a</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>,
+</span></span><span style=display:flex><span>         <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>char</span>, <span style=color:#56b6c2>&gt;</span> <span style=color:#e5c07b>bool</span><span style=color:#56b6c2>&gt;&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>map_b</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>,
+</span></span><span style=display:flex><span>         <span style=color:#e06c75>CustomStatelessAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span><span style=color:#56b6c2>&gt;&gt;&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>map_c</span>;
+</span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>,
+</span></span><span style=display:flex><span>         <span style=color:#e06c75>CustomStatefulAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span><span style=color:#56b6c2>&gt;&gt;&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>map_d</span>;
 </span></span></code></pre></td></tr></table></div></div><table><thead><tr><th>instance</th><th>allocator</th><th>group</th></tr></thead><tbody><tr><td><code>vector_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>vector_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>vector_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>vector_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>set_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>set_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>set_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>set_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>map_a</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code> (defaulted)</td><td>4</td></tr><tr><td><code>map_b</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code></td><td>4</td></tr><tr><td><code>map_c</code></td><td><code>CustomStatelessAllocator&lt;std::pair&lt;const char, bool>></code></td><td>5</td></tr><tr><td><code>map_d</code></td><td><code>CustomStatefulAllocator&lt;std::pair&lt;const char, bool>></code></td><td>6</td></tr></tbody></table><p>According to <a href=https://en.cppreference.com/w/cpp/named_req/Allocator#Stateful_and_stateless_allocators>cppreference</a>, issued in 01/02/2023:</p><blockquote><p>Every <code>Allocator</code> type is either <strong>stateful</strong> or <strong>stateless</strong>. Generally, a <strong>stateful</strong> allocator type can have unequal values which denote distinct memory resources, while a <strong>stateless</strong> allocator type denotes a single memory resource.</p></blockquote><p><strong><code>std::allocator</code> per-type allocators</strong>: all the data structures of the same type share one instance of the allocator.</p><h4 id=4211-design-overview>4.2.1.1. Design Overview
 <a class=heading-link href=#4211-design-overview><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h4><p>In a regular allocator, memory chunks belonging to different data structures may end up next to one another in the memory. With an STL allocator, data from different domains are guaranteed in separate memory blocks. This design leads to several improvements:</p><ul><li><p><strong>Decreases memory fragmentation, increases data locality and access speed since data from the same data structure is in the same memory block</strong></p><ul><li>STL allocator guarantees that memory chunks are returned to the allocator when the data structure is destroyed. Additionally, when all data structures of the same type are destroyed, the STL allocator returns the free memory to the system.</li><li>Consecutive calls to <code>allocate</code> (<code>deallocate</code>) guarantee to return neighboring chunks in memory</li></ul></li><li><p><strong>Simple implementation opens up speed opportunities</strong>:</p><ul><li><strong>The allocator return only chunks of a (or multiple of) constant size</strong>: memory-fragmentation-free. Any free element will be a perfect fit for any request.<br>Also, since the size is already known (constant size), there is no need for chunk metadata that keeps the information about the chunk&rsquo;s size.</li><li><strong>no thread-safe requirements</strong> unless the data structure is allocated from several threads.</li></ul></li></ul><h4 id=4212-example-of-customizing-stl-allocator>4.2.1.2. Example of customizing STL allocator
 <a class=heading-link href=#4212-example-of-customizing-stl-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h4><p><a href=https://en.wikipedia.org/wiki/Region-based_memory_management><strong>Arena Allocator (also called bump allocator)</strong></a> is commonly used for data structures that have little changes after their creation. Since deallocation is a no-op, destruction can be significantly fast.</p><p>This section provides a naive <strong>Arena Allocator</strong> implementation for <code>std::map</code>.</p><p>Given the definition of <code>std::map</code>, issued in 01/02/2023:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>Key</span>,
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>T</span>,
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>Compare</span> <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span>Key<span style=color:#ff79c6>&gt;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>Allocator</span> <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> Key, T<span style=color:#ff79c6>&gt;&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>map</span>;
-</span></span></code></pre></td></tr></table></div></div><p>There is a template parameter named <code>Allocator</code>, and it defaults to <code>std::allocator</code> (line 5). If you want to replace the allocator of <code>std::map</code>, you will need to write a class with a few methods that can serve as the replacement for the <code>std::allocator</code>.</p><p>Suppose you are using <code>std::map</code> to look up considerable elements, and then you destroy it as soon as afterward. You can provide a custom allocator that allocates from one specific block. Follow the below example:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span> <span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>arena_allocator</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  arena_allocator() {
-</span></span><span style=display:flex><span>    memory_ <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(mmap(<span style=color:#bd93f9>0</span>, kMemorySize, PROT_READ <span style=color:#ff79c6>|</span> PROT_WRITE,
-</span></span><span style=display:flex><span>                                         MAP_PRIVATE <span style=color:#ff79c6>|</span> MAP_ANONYMOUS, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>0</span>));
-</span></span><span style=display:flex><span>    free_block_index_ <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+<span class=sr-only>Link to heading</span></a></h4><p><a href=https://en.wikipedia.org/wiki/Region-based_memory_management><strong>Arena Allocator (also called bump allocator)</strong></a> is commonly used for data structures that have little changes after their creation. Since deallocation is a no-op, destruction can be significantly fast.</p><p>This section provides a naive <strong>Arena Allocator</strong> implementation for <code>std::map</code>.</p><p>Given the definition of <code>std::map</code>, issued in 01/02/2023:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>template</span><span style=color:#56b6c2>&lt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>class</span> <span style=color:#e5c07b>Key</span>,
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>class</span> <span style=color:#e5c07b>T</span>,
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>class</span> <span style=color:#e5c07b>Compare</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>Key</span><span style=color:#56b6c2>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>class</span> <span style=color:#e5c07b>Allocator</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e06c75>Key</span>, <span style=color:#e06c75>T</span><span style=color:#56b6c2>&gt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#56b6c2>&gt;</span> <span style=color:#c678dd>class</span> <span style=color:#e5c07b>map</span>;
+</span></span></code></pre></td></tr></table></div></div><p>There is a template parameter named <code>Allocator</code>, and it defaults to <code>std::allocator</code> (line 5). If you want to replace the allocator of <code>std::map</code>, you will need to write a class with a few methods that can serve as the replacement for the <code>std::allocator</code>.</p><p>Suppose you are using <code>std::map</code> to look up considerable elements, and then you destroy it as soon as afterward. You can provide a custom allocator that allocates from one specific block. Follow the below example:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">24
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">25
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">26
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">27
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">28
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">29
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">30
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">31
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">32
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">33
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">34
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">35
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>template</span> <span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>typename</span> <span style=color:#e06c75>T</span><span style=color:#56b6c2>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>arena_allocator</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>arena_allocator</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>memory_</span> <span style=color:#56b6c2>=</span> <span style=color:#c678dd>reinterpret_cast</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>T</span><span style=color:#56b6c2>*&gt;</span>(<span style=color:#e06c75>mmap</span>(<span style=color:#d19a66>0</span>, <span style=color:#e06c75>kMemorySize</span>, <span style=color:#e06c75>PROT_READ</span> <span style=color:#56b6c2>|</span> <span style=color:#e06c75>PROT_WRITE</span>,
+</span></span><span style=display:flex><span>                                         <span style=color:#e06c75>MAP_PRIVATE</span> <span style=color:#56b6c2>|</span> <span style=color:#e06c75>MAP_ANONYMOUS</span>, <span style=color:#56b6c2>-</span><span style=color:#d19a66>1</span>, <span style=color:#d19a66>0</span>));
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>free_block_index_</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>~</span>arena_allocator() {
-</span></span><span style=display:flex><span>    munmap(memory_, kMemorySize);
+</span></span><span style=display:flex><span>  <span style=color:#56b6c2>~</span><span style=color:#e06c75>arena_allocator</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>munmap</span>(<span style=color:#e06c75>memory_</span>, <span style=color:#e06c75>kMemorySize</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#6272a4>// ....
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
-</span></span><span style=display:flex><span>  <span style=color:#50fa7b>[[nodiscard]]</span> <span style=color:#ff79c6>constexpr</span> T<span style=color:#ff79c6>*</span> allocate(std<span style=color:#ff79c6>::</span>size_t n) {
-</span></span><span style=display:flex><span>    T <span style=color:#ff79c6>*</span>result <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>&amp;</span>memory_[free_block_index_];
-</span></span><span style=display:flex><span>    free_block_index_ <span style=color:#ff79c6>+=</span> n;
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> result;
+</span></span><span style=display:flex><span>  <span style=color:#7f848e>// ....
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>[[nodiscard]]</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e06c75>T</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>allocate</span>(<span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>size_t</span> <span style=color:#e06c75>n</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>T</span> <span style=color:#56b6c2>*</span><span style=color:#e06c75>result</span> <span style=color:#56b6c2>=</span> <span style=color:#56b6c2>&amp;</span><span style=color:#e06c75>memory_</span>[<span style=color:#e06c75>free_block_index_</span>];
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>free_block_index_</span> <span style=color:#56b6c2>+=</span> <span style=color:#e06c75>n</span>;
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>result</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>deallocate</span>(T<span style=color:#ff79c6>*</span> p, std<span style=color:#ff79c6>::</span>size_t n) {
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// deallocate everything when destroyed
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  }
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>constexpr</span> <span style=color:#e5c07b>void</span> <span style=color:#61afef;font-weight:700>deallocate</span>(<span style=color:#e06c75>T</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>p</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>size_t</span> <span style=color:#e06c75>n</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#7f848e>// deallocate everything when destroyed
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  T<span style=color:#ff79c6>*</span> memory_{<span style=color:#ff79c6>nullptr</span>};
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>int</span> free_block_index_{<span style=color:#bd93f9>0</span>};
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>int</span> kMemorySize{<span style=color:#bd93f9>1000</span> <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>1024</span> <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>1024</span>};
+</span></span><span style=display:flex><span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>T</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>memory_</span>{<span style=color:#c678dd>nullptr</span>};
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span> <span style=color:#e06c75>free_block_index_</span>{<span style=color:#d19a66>0</span>};
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>static</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e5c07b>int</span> <span style=color:#e06c75>kMemorySize</span>{<span style=color:#d19a66>1000</span> <span style=color:#56b6c2>*</span> <span style=color:#d19a66>1024</span> <span style=color:#56b6c2>*</span> <span style=color:#d19a66>1024</span>};
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>// using the custom allocator
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>std<span style=color:#ff79c6>::</span>map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>, my_class, std<span style=color:#ff79c6>::</span>less<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span>,
-</span></span><span style=display:flex><span>         arena_allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> <span style=color:#8be9fd>int</span>, my_class<span style=color:#ff79c6>&gt;&gt;&gt;</span>
-</span></span><span style=display:flex><span>    my_ds;
+</span></span><span style=display:flex><span><span style=color:#7f848e>// using the custom allocator
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>int</span>, <span style=color:#e06c75>my_class</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>int</span><span style=color:#56b6c2>&gt;</span>,
+</span></span><span style=display:flex><span>         <span style=color:#e06c75>arena_allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>int</span>, <span style=color:#e06c75>my_class</span><span style=color:#56b6c2>&gt;&gt;&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>my_ds</span>;
 </span></span></code></pre></td></tr></table></div></div><p>In the above example, on line 5, calling <code>mmap</code> to allocate a large block of memory from the OS (it will not allocate all that RAM unless the program uses it). When the <code>arena_allocator</code> instance is destroyed (line 11), the block will get returned to the system. Method <code>allocate</code> returns the first available chunk (lines 17 – 19) in the block, and method <code>deallocate</code> does not do anything. Allocate is fast, and deallocate is a no-op.</p><p>This approach will be ideal for the scene where we are allocating a complete <code>std::map</code> at the beginning and then do not do any removal operations. The tree (<code>std::map</code> is usually implemented as a red-black tree) will be compact in memory, which is good for the cache-hit rate and performance. It will make no memory fragmentation since the whole block is separated from other memory blocks.</p><p>When removing elements from <code>std::map</code>, even though <code>std::map</code> would call <code>deallocate</code>, no memory would be released. The program&rsquo;s memory consumption would go up. If this is the case, we would want to implement the <code>deallocate</code> method, but allocation would also need to become more complex.</p><h3 id=422-per-instance-allocator>4.2.2. Per-Instance Allocator
 <a class=heading-link href=#422-per-instance-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h3><p>**Per-Instance Allocator ** is ideal when you have several large data structures of the same type. <strong>By using a per-instance allocator, the memory needed for a particular data structure instance will be allocated from a dedicated block instead of separating memory blocks per domain (allocating memory pool for each type)</strong>.</p><p>Take an example of a class <code>student</code> which is kept in a <code>std::map&lt;student_id_t, student></code>, given having two instances, one for the undergraduate students and the other for graduate students. With standard STL allocators, both hash maps share the same allocator. With a per-instance allocator, when destroying an instance, the whole memory block used for that instance is empty and can be directly returned to the OS. This benefits memory fragmentation reduction and data locality increment (faster map traversal).</p><p><strong>Unfortunately, STL data structures do not support per-instance allocators, so in this case, you would need to write your data structure with per-instance allocators support</strong>.</p><h3 id=423-tuning-the-custom-allocator>4.2.3. Tuning the custom allocator
+<span class=sr-only>Link to heading</span></a></h3><p><strong>Per-Instance Allocator</strong> is ideal when you have several large data structures of the same type. <strong>By using a per-instance allocator, the memory needed for a particular data structure instance will be allocated from a dedicated block instead of separating memory blocks per domain (allocating memory pool for each type)</strong>.</p><p>Take an example of a class <code>student</code> which is kept in a <code>std::map&lt;student_id_t, student></code>, given having two instances, one for the undergraduate students and the other for graduate students. With standard STL allocators, both hash maps share the same allocator. With a per-instance allocator, when destroying an instance, the whole memory block used for that instance is empty and can be directly returned to the OS. This benefits memory fragmentation reduction and data locality increment (faster map traversal).</p><p><strong>Unfortunately, STL data structures do not support per-instance allocators, so in this case, you would need to write your data structure with per-instance allocators support</strong>.</p><h3 id=423-tuning-the-custom-allocator>4.2.3. Tuning the custom allocator
 <a class=heading-link href=#423-tuning-the-custom-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h3><p><strong>A custom allocator can be adjusted to a specific environment for maximum performance. Knowing your domain will help to pick the right strategy for your custom allocator</strong>. The following approaches can be taken into account:</p><ul><li><strong>Static allocator</strong>: Preloading with enough space to store elements can be perfectly fit for small data structures. If the context requires extra memory, the allocator can request it from the system allocator. This approach can substantially decrease the number of calls to the system allocator.</li><li><strong>Arena allocator</strong>: Only release memory when the allocator is destroyed. It is useful for large data structures that are mostly static after creation.</li><li><strong>Cache allocator</strong>: When deallocating, keep certain chunks in the cache instead of returning the whole memory to the system allocator for future usage of allocating requests. Despite not decreasing memory fragmentation, this approach can slow down fragmenting progression.</li></ul><h2 id=43-memory-chunk-caching-for-producer-consumer>4.3. Memory chunk caching for producer-consumer
 <a class=heading-link href=#43-memory-chunk-caching-for-producer-consumer><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>Given a producer thread allocates an object and sends it to the consumer thread. After processing, the consumer thread destroys the object and releases the memory back to the OS. <strong>This context puts a large pressure on the system allocator. One approach is to allocate all the objects from a dedicated memory pool using a custom allocator.</strong></p><p>In C++, you could overload <code>operator new/delete</code> to use the new allocator. However, since the object memory lifetime is controlled in separate threads, you must be aware of synchronization.
-One idea is to use a memory cache on both the allocation and deallocation places. Consider the following source code:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span> <span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>memory_pool</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  T<span style=color:#ff79c6>*</span> allocate() {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (allocation_cache_.empty()) {
-</span></span><span style=display:flex><span>      <span style=color:#8be9fd>int</span> move_count{};
-</span></span><span style=display:flex><span>      <span style=color:#8be9fd>int</span> remaining_count{};
+One idea is to use a memory cache on both the allocation and deallocation places. Consider the following source code:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">24
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">25
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">26
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">27
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">28
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">29
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">30
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">31
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">32
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">33
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">34
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">35
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">36
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">37
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">38
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">39
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">40
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">41
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">42
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">43
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">44
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">45
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">46
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">47
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">48
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">49
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">50
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">51
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">52
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">53
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">54
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">55
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">56
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">57
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">58
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">59
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">60
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>template</span> <span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>typename</span> <span style=color:#e06c75>T</span><span style=color:#56b6c2>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>memory_pool</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>T</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>allocate</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>if</span> (<span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>empty</span>()) {
+</span></span><span style=display:flex><span>      <span style=color:#e5c07b>int</span> <span style=color:#e06c75>move_count</span>{};
+</span></span><span style=display:flex><span>      <span style=color:#e5c07b>int</span> <span style=color:#e06c75>remaining_count</span>{};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      common_cache_mutex_.lock();
-</span></span><span style=display:flex><span>      move_count <span style=color:#ff79c6>=</span>
-</span></span><span style=display:flex><span>          allocation_cache_.move_to(common_cache_, allocation_cache_.capacity());
-</span></span><span style=display:flex><span>      common_cache_mutex_.unlock();
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>common_cache_mutex_</span>.<span style=color:#e06c75>lock</span>();
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>move_count</span> <span style=color:#56b6c2>=</span>
+</span></span><span style=display:flex><span>          <span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>move_to</span>(<span style=color:#e06c75>common_cache_</span>, <span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>capacity</span>());
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>common_cache_mutex_</span>.<span style=color:#e06c75>unlock</span>();
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      remaining_count <span style=color:#ff79c6>=</span> allocation_cache_.capacity() <span style=color:#ff79c6>-</span> move_count;
-</span></span><span style=display:flex><span>      <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> remaining_count; <span style=color:#ff79c6>++</span>i) {
-</span></span><span style=display:flex><span>        allocation_cache_.push_front(malloc(<span style=color:#ff79c6>sizeof</span>(T));
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>remaining_count</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>capacity</span>() <span style=color:#56b6c2>-</span> <span style=color:#e06c75>move_count</span>;
+</span></span><span style=display:flex><span>      <span style=color:#c678dd>for</span> (<span style=color:#c678dd>auto</span> <span style=color:#e06c75>i</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>; <span style=color:#e06c75>i</span> <span style=color:#56b6c2>&lt;</span> <span style=color:#e06c75>remaining_count</span>; <span style=color:#56b6c2>++</span><span style=color:#e06c75>i</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>push_front</span>(<span style=color:#e06c75>malloc</span>(<span style=color:#c678dd>sizeof</span>(<span style=color:#e06c75>T</span>));
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> allocation_cache_.pop_front();
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>allocation_cache_</span>.<span style=color:#e06c75>pop_front</span>();
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>deallocate</span>(T<span style=color:#ff79c6>*</span> p) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (deallocation_cache_.full()) {
-</span></span><span style=display:flex><span>      <span style=color:#8be9fd>int</span> remaining_count{};
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>void</span> <span style=color:#61afef;font-weight:700>deallocate</span>(<span style=color:#e06c75>T</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>p</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>if</span> (<span style=color:#e06c75>deallocation_cache_</span>.<span style=color:#e06c75>full</span>()) {
+</span></span><span style=display:flex><span>      <span style=color:#e5c07b>int</span> <span style=color:#e06c75>remaining_count</span>{};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      common_cache_mutex_.lock();
-</span></span><span style=display:flex><span>      common_cache_.move_to(deallocation_cache_, deallocation_cache_.capacity());
-</span></span><span style=display:flex><span>      common_cache_mutex_.unlock();
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>common_cache_mutex_</span>.<span style=color:#e06c75>lock</span>();
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>common_cache_</span>.<span style=color:#e06c75>move_to</span>(<span style=color:#e06c75>deallocation_cache_</span>, <span style=color:#e06c75>deallocation_cache_</span>.<span style=color:#e06c75>capacity</span>());
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>common_cache_mutex_</span>.<span style=color:#e06c75>unlock</span>();
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      remaining_count <span style=color:#ff79c6>=</span> deallocation_cache_.count();
-</span></span><span style=display:flex><span>      <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> remaining_count; <span style=color:#ff79c6>++</span>i) {
-</span></span><span style=display:flex><span>        free(deallocation_cache_.pop_front());
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>remaining_count</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>deallocation_cache_</span>.<span style=color:#e06c75>count</span>();
+</span></span><span style=display:flex><span>      <span style=color:#c678dd>for</span> (<span style=color:#c678dd>auto</span> <span style=color:#e06c75>i</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>; <span style=color:#e06c75>i</span> <span style=color:#56b6c2>&lt;</span> <span style=color:#e06c75>remaining_count</span>; <span style=color:#56b6c2>++</span><span style=color:#e06c75>i</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#e06c75>free</span>(<span style=color:#e06c75>deallocation_cache_</span>.<span style=color:#e06c75>pop_front</span>());
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    deallocation_cache_.push_front(p);
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>deallocation_cache_</span>.<span style=color:#e06c75>push_front</span>(<span style=color:#e06c75>p</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  chunk_list<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span> allocation_cache_;
-</span></span><span style=display:flex><span>  chunk_list<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span> deallocation_cache_;
-</span></span><span style=display:flex><span>  chunk_list<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span> common_cache_;
-</span></span><span style=display:flex><span>  std<span style=color:#ff79c6>::</span>mutex common_cache_mutex_;
+</span></span><span style=display:flex><span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>chunk_list</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>T</span><span style=color:#56b6c2>*&gt;</span> <span style=color:#e06c75>allocation_cache_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>chunk_list</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>T</span><span style=color:#56b6c2>*&gt;</span> <span style=color:#e06c75>deallocation_cache_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>chunk_list</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>T</span><span style=color:#56b6c2>*&gt;</span> <span style=color:#e06c75>common_cache_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>mutex</span> <span style=color:#e06c75>common_cache_mutex_</span>;
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>// Usage
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>object</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> <span style=color:#ff79c6>operator</span> <span style=color:#ff79c6>new</span>(size_t size) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> m_pool.allocate();
+</span></span><span style=display:flex><span><span style=color:#7f848e>// Usage
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span>
+</span></span><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>object</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>void</span><span style=color:#56b6c2>*</span> <span style=color:#c678dd>operator</span> <span style=color:#c678dd>new</span>(<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>size</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>m_pool</span>.<span style=color:#e06c75>allocate</span>();
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>void</span> <span style=color:#ff79c6>operator</span> <span style=color:#50fa7b>delete</span>(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> p) {
-</span></span><span style=display:flex><span>    m_pool.deallocate(p);
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>void</span> <span style=color:#c678dd>operator</span> <span style=color:#61afef;font-weight:700>delete</span>(<span style=color:#e5c07b>void</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>p</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>m_pool</span>.<span style=color:#e06c75>deallocate</span>(<span style=color:#e06c75>p</span>);
 </span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>static</span> memory_pool<span style=color:#ff79c6>&lt;</span>object<span style=color:#ff79c6>&gt;</span> m_pool;
+</span></span><span style=display:flex><span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>static</span> <span style=color:#e06c75>memory_pool</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>object</span><span style=color:#56b6c2>&gt;</span> <span style=color:#e06c75>m_pool</span>;
 </span></span><span style=display:flex><span>};
 </span></span></code></pre></td></tr></table></div></div><p>Inside the custom allocator <code>memory_pool</code>are three linked lists containing the cached memory chunks: <code>allocation_cache_</code>, <code>common_cache_</code> and <code>deallocation_cache_</code>.</p><ul><li><strong>When <code>deallocate</code> is called, the memory chunk is not released back to the system allocator. Instead, it is cached</strong> (line 37).<ul><li>If <code>deallocation_cache_</code> is full, memory chunks from it are moved to <code>common_cache_</code>(line 28). When the <code>common_cache_</code> becomes full, the remaining memory chunks are released back to the system allocator (lines 32-34). <code>deallocation_cache_</code> is empty after this operation.</li><li>Access to <code>common_cache_</code> has to be secured with a mutex (lines 27 and 29).</li><li>Access to <code>deallocation_cache_</code> is the common case, we only need to access <code>common_cache_</code> when <code>deallocation_cache_</code> is full.</li></ul></li><li><strong>When <code>allocate</code> is called, if available, a memory chunk is taken from the cache</strong> (line 20).<ul><li>If <code>allocation_cache_</code> is empty, then additional memory chunks are taken from the <code>common_cache_</code>(line 10). The <code>memory_pool</code> will move chunks (as much as possible) from the <code>common_cache_</code> to the <code>allocation_cache_</code>until <code>allocation_cache_</code> is full.</li><li>If the <code>allocation_cache_</code> is not full after this operation, the system allocator will request additional memory chunks (lines 15 – 17).</li><li>Access to <code>common_cache_</code> has to be secured with a mutex (lines 9 and 12).</li><li>Access to <code>allocation_cache_</code> is the common case, we only need to access <code>common_cache_</code> when <code>allocation_cache_</code> is empty.</li></ul></li></ul><p>This solution works only with two threads, one allocates, and the other deallocate objects.</p><p>For optimally, the size of <code>allocation_cache_</code>, <code>deallocation_cache_</code> and <code>common_cache_</code> need to be chosen carefully:</p><ul><li>Small values make the <code>memory_pool</code> work more with the system allocator than the cached chunk lists.</li><li>Large value makes the <code>memory_pool</code> consume more memory.</li><li>An ideal size for <code>common_cache_</code> is 2 times bigger than the capacity of the others.</li></ul><h2 id=44-small-size-optimizations>4.4. Small Size Optimizations
 <a class=heading-link href=#44-small-size-optimizations><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>Given class <code>small_vector</code> for storing integers, after profiling, you see that in most of the runtime cases, these objects have small sizes of up to 4. Consider the following (naive) implementation:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>small_vector</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  small_vector(size_t capacity) {
-</span></span><span style=display:flex><span>    size_ <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-</span></span><span style=display:flex><span>    capacity_ <span style=color:#ff79c6>=</span> capacity;
-</span></span><span style=display:flex><span>    data_ <span style=color:#ff79c6>=</span> malloc(<span style=color:#ff79c6>sizeof</span>(<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span> capacity);
+<span class=sr-only>Link to heading</span></a></h2><p>Given class <code>small_vector</code> for storing integers, after profiling, you see that in most of the runtime cases, these objects have small sizes of up to 4. Consider the following (naive) implementation:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>small_vector</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>small_vector</span>(<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>size_</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>capacity_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>capacity</span>;
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>data_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>malloc</span>(<span style=color:#c678dd>sizeof</span>(<span style=color:#e5c07b>int</span>) <span style=color:#56b6c2>*</span> <span style=color:#e06c75>capacity</span>);
 </span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>int</span><span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span>[](size_t index) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> data_[index];
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span><span style=color:#56b6c2>&amp;</span> <span style=color:#c678dd>operator</span>[](<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>index</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>data_</span>[<span style=color:#e06c75>index</span>];
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span> data_;
-</span></span><span style=display:flex><span>  size_t size_;
-</span></span><span style=display:flex><span>  size_t capacity_;
+</span></span><span style=display:flex><span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>data_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>size_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity_</span>;
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></td></tr></table></div></div><p><strong>We could pre-allocate 4 integers, thus, totally reducing calls to the system allocator</strong>.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>small_vector</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  small_vector(size_t capacity) {
-</span></span><span style=display:flex><span>    size_ <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (capacity <span style=color:#ff79c6>&lt;=</span> kPreAllocatedSize) {
-</span></span><span style=display:flex><span>      capacity_ <span style=color:#ff79c6>=</span> kPreAllocatedSize;
-</span></span><span style=display:flex><span>      data_ <span style=color:#ff79c6>=</span> pre_allocated_storage_;
-</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
-</span></span><span style=display:flex><span>      capacity_ <span style=color:#ff79c6>=</span> capacity;
-</span></span><span style=display:flex><span>      data_ <span style=color:#ff79c6>=</span> malloc(<span style=color:#ff79c6>sizeof</span>(<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span> capacity);
+</span></span></code></pre></td></tr></table></div></div><p><strong>We could pre-allocate 4 integers, thus, totally reducing calls to the system allocator</strong>.</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>small_vector</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>small_vector</span>(<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#e06c75>size_</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>if</span> (<span style=color:#e06c75>capacity</span> <span style=color:#56b6c2>&lt;=</span> <span style=color:#e06c75>kPreAllocatedSize</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>capacity_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>kPreAllocatedSize</span>;
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>data_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>pre_allocated_storage_</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#c678dd>else</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>capacity_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>capacity</span>;
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>data_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>malloc</span>(<span style=color:#c678dd>sizeof</span>(<span style=color:#e5c07b>int</span>) <span style=color:#56b6c2>*</span> <span style=color:#e06c75>capacity</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#6272a4>// ...
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#6272a4>// ...
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>int</span> kPreAllocatedSize <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>4</span>;
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>int</span> pre_allocated_storage_[kPreAllocatedSize];
+</span></span><span style=display:flex><span>  <span style=color:#7f848e>// ...
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#7f848e>// ...
+</span></span></span><span style=display:flex><span><span style=color:#7f848e></span>  <span style=color:#c678dd>static</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e5c07b>int</span> <span style=color:#e06c75>kPreAllocatedSize</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>4</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span> <span style=color:#e06c75>pre_allocated_storage_</span>[<span style=color:#e06c75>kPreAllocatedSize</span>];
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></td></tr></table></div></div><p>If we create <code>small_vector</code> with a capacity less than or equal to <code>kPreAllocatedSize</code> (lines 6-7), we use the <code>pre_allocated_storage_</code>. Otherwise, we call the system allocator as usual (lines 9-10).</p><p>However, the drawback is the class size increment. On a 64-bit system, the original was 24 bytes, while the new is 40 bytes.</p><p><strong>A common solution is using C unions to overlay the data for the pre-allocated case and the heap-allocated case</strong>. The most significant bit in <code>size_</code> can be used for authorization between these cases (<code>0</code> for pre-allocated and <code>1</code> for heap-allocated).</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>small_vector</span> {
-</span></span><span style=display:flex><span><span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  small_vector(size_t capacity) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (capacity <span style=color:#ff79c6>&gt;</span> kPreAllocatedSize) {
-</span></span><span style=display:flex><span>      data_.heap_storage_.capacity_ <span style=color:#ff79c6>=</span> capacity;
-</span></span><span style=display:flex><span>      data_.heap_storage_.data_ <span style=color:#ff79c6>=</span> (<span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span>)malloc(<span style=color:#ff79c6>sizeof</span>(<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span> capacity);
-</span></span><span style=display:flex><span>      size_ <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>|</span> kHeadSizeMask;
-</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
-</span></span><span style=display:flex><span>      size_ <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span></code></pre></td></tr></table></div></div><p>If we create <code>small_vector</code> with a capacity less than or equal to <code>kPreAllocatedSize</code> (lines 6-7), we use the <code>pre_allocated_storage_</code>. Otherwise, we call the system allocator as usual (lines 9-10).</p><p>However, the drawback is the class size increment. On a 64-bit system, the original was 24 bytes, while the new is 40 bytes.</p><p><strong>A common solution is using C unions to overlay the data for the pre-allocated case and the heap-allocated case</strong>. The most significant bit in <code>size_</code> can be used for authorization between these cases (<code>0</code> for pre-allocated and <code>1</code> for heap-allocated).</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">24
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">25
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">26
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">27
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">28
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">29
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">30
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">31
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">32
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">33
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">34
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">35
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">36
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">37
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">38
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">39
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">40
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">41
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#c678dd>class</span> <span style=color:#e5c07b>small_vector</span> {
+</span></span><span style=display:flex><span><span style=color:#c678dd>public</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>small_vector</span>(<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>if</span> (<span style=color:#e06c75>capacity</span> <span style=color:#56b6c2>&gt;</span> <span style=color:#e06c75>kPreAllocatedSize</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>data_</span>.<span style=color:#e06c75>heap_storage_</span>.<span style=color:#e06c75>capacity_</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>capacity</span>;
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>data_</span>.<span style=color:#e06c75>heap_storage_</span>.<span style=color:#e06c75>data_</span> <span style=color:#56b6c2>=</span> (<span style=color:#e5c07b>int</span><span style=color:#56b6c2>*</span>)<span style=color:#e06c75>malloc</span>(<span style=color:#c678dd>sizeof</span>(<span style=color:#e5c07b>int</span>) <span style=color:#56b6c2>*</span> <span style=color:#e06c75>capacity</span>);
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>size_</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span> <span style=color:#56b6c2>|</span> <span style=color:#e06c75>kHeadSizeMask</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#c678dd>else</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>size_</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>0</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>bool</span> <span style=color:#50fa7b>is_pre_allocated</span>() {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (size_ <span style=color:#ff79c6>&amp;</span> kHeadSizeMask) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>bool</span> <span style=color:#61afef;font-weight:700>is_pre_allocated</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> (<span style=color:#e06c75>size_</span> <span style=color:#56b6c2>&amp;</span> <span style=color:#e06c75>kHeadSizeMask</span>) <span style=color:#56b6c2>==</span> <span style=color:#d19a66>0</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#8be9fd>int</span><span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span>[](size_t index) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (is_pre_allocated()) {
-</span></span><span style=display:flex><span>      <span style=color:#ff79c6>return</span> data_.pre_allocated_storage_[index];
+</span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span><span style=color:#56b6c2>&amp;</span> <span style=color:#c678dd>operator</span>[](<span style=color:#e06c75>size_t</span> <span style=color:#e06c75>index</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>if</span> (<span style=color:#e06c75>is_pre_allocated</span>()) {
+</span></span><span style=display:flex><span>      <span style=color:#c678dd>return</span> <span style=color:#e06c75>data_</span>.<span style=color:#e06c75>pre_allocated_storage_</span>[<span style=color:#e06c75>index</span>];
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> data_.heap_storage_.data_[index];
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>data_</span>.<span style=color:#e06c75>heap_storage_</span>.<span style=color:#e06c75>data_</span>[<span style=color:#e06c75>index</span>];
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  size_t <span style=color:#50fa7b>size</span>() {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> size_ <span style=color:#ff79c6>&amp;</span> (<span style=color:#ff79c6>~</span>kHeadSizeMask);
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#61afef;font-weight:700>size</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>return</span> <span style=color:#e06c75>size_</span> <span style=color:#56b6c2>&amp;</span> (<span style=color:#56b6c2>~</span><span style=color:#e06c75>kHeadSizeMask</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>int</span> kPreAllocatedSize <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>4</span>;
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> size_t kHeadSizeMask <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1ULL</span> <span style=color:#ff79c6>&lt;&lt;</span> (<span style=color:#ff79c6>sizeof</span>(size_t) <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>8</span> <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>);
-</span></span><span style=display:flex><span>  <span style=color:#ff79c6>union</span> <span style=color:#50fa7b>data_t</span> {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>struct</span> {
-</span></span><span style=display:flex><span>      <span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span> data_;
-</span></span><span style=display:flex><span>      size_t capacity_;
-</span></span><span style=display:flex><span>    } heap_storage_;
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> pre_allocated_storage_[kPreAllocatedSize];
+</span></span><span style=display:flex><span><span style=color:#c678dd>private</span><span style=color:#56b6c2>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>static</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e5c07b>int</span> <span style=color:#e06c75>kPreAllocatedSize</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>4</span>;
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>static</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>kHeadSizeMask</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>1ULL</span> <span style=color:#56b6c2>&lt;&lt;</span> (<span style=color:#c678dd>sizeof</span>(<span style=color:#e06c75>size_t</span>) <span style=color:#56b6c2>*</span> <span style=color:#d19a66>8</span> <span style=color:#56b6c2>-</span> <span style=color:#d19a66>1</span>);
+</span></span><span style=display:flex><span>  <span style=color:#c678dd>union</span> <span style=color:#e5c07b>data_t</span> {
+</span></span><span style=display:flex><span>    <span style=color:#c678dd>struct</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e5c07b>int</span><span style=color:#56b6c2>*</span> <span style=color:#e06c75>data_</span>;
+</span></span><span style=display:flex><span>      <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity_</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#e06c75>heap_storage_</span>;
+</span></span><span style=display:flex><span>    <span style=color:#e5c07b>int</span> <span style=color:#e06c75>pre_allocated_storage_</span>[<span style=color:#e06c75>kPreAllocatedSize</span>];
 </span></span><span style=display:flex><span>  };
-</span></span><span style=display:flex><span>  data_t data_;
-</span></span><span style=display:flex><span>  size_t size_;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>data_t</span> <span style=color:#e06c75>data_</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>size_</span>;
 </span></span><span style=display:flex><span>};
 </span></span></code></pre></td></tr></table></div></div><p>This approach is used in several places. For example, <a href=https://joellaity.com/2020/01/31/string.html>libc++ <code>std::string</code> implementation</a>.</p><h2 id=45-fighting-memory-fragmentation>4.5. Fighting memory fragmentation
 <a class=heading-link href=#45-fighting-memory-fragmentation><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
@@ -435,9 +435,9 @@ One idea is to use a memory cache on both the allocation and deallocation places
 <span class=sr-only>Link to heading</span></a></h1><p><strong>This section writes about a solution to speed up your program: using a better system allocator for your needs.</strong>
 Several open-source allocators try to achieve efficient allocation and deallocation. However, at the time of writing and personal observation, there has yet to be any allocator who has taken the holy grail.</p><p>Regularly, there are four perspectives that each allocator compromises on:</p><ul><li><strong>Allocation Speed</strong>: Note that both the speed of <em><strong>malloc</strong></em> and <em><strong>free</strong></em> (<em><strong>new</strong></em> and <em><strong>delete</strong></em>) are important.</li><li><strong>Memory Consumption</strong>: Percentage of wasted memory after allocating. The allocator needs to keep some accounting info for each block, which normally takes up some space. Additionally, if the allocator optimizes for allocation speed, it can leave some memory unused.</li><li><strong>Memory Fragmentation</strong>: Some allocators have these issues than others, which can affect the speed of long-running applications.</li><li><strong>Cache/Data Locality</strong>: Allocators which pack data in smaller blocks and avoid memory losses have better cache/data locality (I will talk about this in a follow-up article)</li></ul><h2 id=51-allocators-on-linux>5.1. Allocators on Linux
 <a class=heading-link href=#51-allocators-on-linux><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>When using <em><strong>malloc</strong></em> and <em><strong>free</strong></em> (<em><strong>new</strong></em> and <em><strong>delete</strong></em>) in your program, normally, the C standard library implements those functions. Its allocator is called <strong>GNU Allocator</strong>, based on <a href=http://www.malloc.de/en/><strong>ptmalloc</strong></a>. Apart from it, there are several other open-source allocators commonly used on Linux: <a href=https://goog-perftools.sourceforge.net/doc/tcmalloc.html>tcmalloc</a> (by Google), <a href=https://jemalloc.net/>jemalloc</a> (by Facebook), <a href=https://github.com/microsoft/mimalloc>mimalloc</a> (by Microsoft), <a href=http://hoard.org/>hoard allocator</a> and <a href=http://www.malloc.de/en/>ptmalloc</a>.</p><p>GNU Allocator is not among the most efficient allocators. However, it does have one advantage, the worst-case runtime and memory usage will be all right.</p><p>Other allocators claim to be better in speed, memory usage, or cache/data locality. Before choosing a new system allocator, consider thinking about the following questions:</p><ul><li>Single-thread or multi-threaded?</li><li>Maximum allocation speed or minimum memory consumption? What is the trade-off that you are willing to take?</li><li>Allocator for the whole program or only for the most critical parts?</li></ul><p>In Linux, after installing the allocator, you can use an environment variable <code>LD_PRELOAD</code> to replace the default allocator with a custom one:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-bash data-lang=bash><span style=display:flex><span>$ <span style=color:#8be9fd;font-style:italic>LD_PRELOAD</span><span style=color:#ff79c6>=</span>/usr/lib/x86_64-Linux-gnu/libtcmalloc_minimal.so.4
+<span class=sr-only>Link to heading</span></a></h2><p>When using <em><strong>malloc</strong></em> and <em><strong>free</strong></em> (<em><strong>new</strong></em> and <em><strong>delete</strong></em>) in your program, normally, the C standard library implements those functions. Its allocator is called <strong>GNU Allocator</strong>, based on <a href=http://www.malloc.de/en/><strong>ptmalloc</strong></a>. Apart from it, there are several other open-source allocators commonly used on Linux: <a href=https://goog-perftools.sourceforge.net/doc/tcmalloc.html>tcmalloc</a> (by Google), <a href=https://jemalloc.net/>jemalloc</a> (by Facebook), <a href=https://github.com/microsoft/mimalloc>mimalloc</a> (by Microsoft), <a href=http://hoard.org/>hoard allocator</a> and <a href=http://www.malloc.de/en/>ptmalloc</a>.</p><p>GNU Allocator is not among the most efficient allocators. However, it does have one advantage, the worst-case runtime and memory usage will be all right.</p><p>Other allocators claim to be better in speed, memory usage, or cache/data locality. Before choosing a new system allocator, consider thinking about the following questions:</p><ul><li>Single-thread or multi-threaded?</li><li>Maximum allocation speed or minimum memory consumption? What is the trade-off that you are willing to take?</li><li>Allocator for the whole program or only for the most critical parts?</li></ul><p>In Linux, after installing the allocator, you can use an environment variable <code>LD_PRELOAD</code> to replace the default allocator with a custom one:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-bash data-lang=bash><span style=display:flex><span>$ <span style=color:#e06c75>LD_PRELOAD</span><span style=color:#56b6c2>=</span>/usr/lib/x86_64-Linux-gnu/libtcmalloc_minimal.so.4
 </span></span><span style=display:flex><span>./my_program
 </span></span></code></pre></td></tr></table></div></div><h2 id=52-the-performance-test>5.2. The Performance Test
 <a class=heading-link href=#52-the-performance-test><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
