@@ -1,38 +1,39 @@
-baseURL = "https://philong6297.github.io"
-title = "LongLP"
-theme = "hugo-coder"
-languageCode = "en"
-defaultContentLanguage = "en"
-paginate = 20
-pygmentsStyle = "bw"
-pygmentsCodeFences = true
+baseURL                       = "https://philong6297.github.io"
+copyright                     = "test-cpr"
+defaultContentLanguage        = "en"
+enableEmoji                   = true
+languageCode                  = "en"
+paginate                      = 20
+pygmentsCodeFences            = true
 pygmentsCodeFencesGuessSyntax = true
-enableEmoji = true
-copyright = "test-cpr"
+pygmentsStyle                 = "bw"
+theme                         = "hugo-coder"
+title                         = "LongLP"
+
 
 [markup]
   [markup.highlight]
-    anchorLineNos = false
-    codeFences = true
-    guessSyntax = false
-    hl_Lines = ''
-    lineAnchors = ''
-    lineNoStart = 1
-    lineNos = true
+    anchorLineNos      = false
+    codeFences         = true
+    guessSyntax        = false
+    hl_Lines           = ''
+    lineAnchors        = ''
+    lineNoStart        = 1
+    lineNos            = true
     lineNumbersInTable = true
-    noClasses = true
-    style = 'dracula'
-    tabWidth = 2
+    noClasses          = true
+    style              = 'onedark'
+    tabWidth           = 2
   [markup.goldmark.renderer]
     hardWraps = false
-    unsafe = true
-    xhtml = true
+    unsafe    = true
+    xhtml     = true
 
 [taxonomies]
+  author   = "authors"
   category = "categories"
-  series = "series"
-  tag = "tags"
-  author = "authors"
+  series   = "series"
+  tag      = "tags"
 
 [caches]
   [caches.assets]
@@ -50,45 +51,45 @@ copyright = "test-cpr"
 
 # Hugo Coders configuration
 [params]
-  author = "Phi-Long Le"
-  info = ["C++ Enthusiast"]
-  description = "Personal blog"
-  keywords = "blog,developer,personal"
-  avatarURL = "images/ava.png"
-  favicon_32 = "images/favicon-32x32.png"
-  favicon_16 = "images/favicon-16x16.png"
-  dateFormat = "January 2, 2006"
-  touchIcon = "images/apple-touch-icon.png"
-  since = "2021"
-  maxSeeAlsoItems = 10
-  commit = ""
-  rtl = false
-  math = true
-  katex = true
-  colorScheme = "auto"
+  author                = "Phi-Long Le"
+  avatarURL             = "images/ava.png"
+  colorScheme           = "auto"
+  commit                = ""
+  customCSS             = []
+  customJS              = []
+  customSCSS            = []
+  dateFormat            = "January 2, 2006"
+  description           = "Personal blog"
+  enableTwemoji         = false
+  favicon_16            = "images/favicon-16x16.png"
+  favicon_32            = "images/favicon-32x32.png"
   hideColorSchemeToggle = false
-  customCSS = []
-  customSCSS = []
-  customJS = []
-  enableTwemoji = false
+  info                  = ["C++ Enthusiast"]
+  katex                 = true
+  keywords              = "blog,developer,personal"
+  math                  = true
+  maxSeeAlsoItems       = 10
+  rtl                   = false
+  since                 = "2021"
+  touchIcon             = "images/apple-touch-icon.png"
 
   [[params.social]]
-  name = "Github"
-  icon = "fa fa-2x fa-github"
-  weight = 1
-  url = "https://github.com/philong6297"
+    icon   = "fa fa-2x fa-github"
+    name   = "Github"
+    url    = "https://github.com/philong6297"
+    weight = 1
   [[params.social]]
-  name = "LinkedIn"
-  icon = "fa fa-2x fa-linkedin"
-  weight = 2
-  url = "https://www.linkedin.com/in/phi-long-le-91a06b223/"
+    icon   = "fa fa-2x fa-linkedin"
+    name   = "LinkedIn"
+    url    = "https://www.linkedin.com/in/phi-long-le-91a06b223/"
+    weight = 2
 
 [menu]
   [[menu.main]]
-    name = "Blog"
+    name   = "Blog"
+    url    = "posts/"
     weight = 1
-    url  = "posts/"
   [[menu.main]]
-    name = "About"
+    name   = "About"
+    url    = "about/"
     weight = 2
-    url = "about/"

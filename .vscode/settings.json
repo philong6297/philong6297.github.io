@@ -1,0 +1,6 @@
+{
+  "evenBetterToml.schema.enabled": true,
+  "evenBetterToml.schema.associations": {
+    "config.toml": "https://json.schemastore.org/hugo.json"
+  }
+}
