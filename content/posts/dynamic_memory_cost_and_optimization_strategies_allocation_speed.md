@@ -268,7 +268,7 @@ When removing elements from ``std::map``, even though ``std::map`` would call ``
 
 ### 4.2.2. Per-Instance Allocator
 
-**Per-Instance Allocator ** is ideal when you have several large data structures of the same type. **By using a per-instance allocator, the memory needed for a particular data structure instance will be allocated from a dedicated block instead of separating memory blocks per domain (allocating memory pool for each type)**.
+**Per-Instance Allocator** is ideal when you have several large data structures of the same type. **By using a per-instance allocator, the memory needed for a particular data structure instance will be allocated from a dedicated block instead of separating memory blocks per domain (allocating memory pool for each type)**.
 
 Take an example of a class ``student`` which is kept in a ``std::map<student_id_t, student>``, given having two instances, one for the undergraduate students and the other for graduate students. With standard STL allocators, both hash maps share the same allocator. With a per-instance allocator, when destroying an instance, the whole memory block used for that instance is empty and can be directly returned to the OS. This benefits memory fragmentation reduction and data locality increment (faster map traversal).
 
