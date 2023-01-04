@@ -5,31 +5,8 @@ date = "2022-12-31"
 tags = [
     "cpp",
 ]
+toc = true
 +++
-
-- [1. Introduction](#1-introduction)
-- [2. Drawbacks of ***malloc*** and ***free*** design](#2-drawbacks-of-malloc-and-free-design)
-  - [2.1. Memory fragmentation](#21-memory-fragmentation)
-  - [2.2. Thread Synchronization](#22-thread-synchronization)
-- [3. Program slowness caused by allocators](#3-program-slowness-caused-by-allocators)
-- [4. Optimization Strategies](#4-optimization-strategies)
-  - [4.1. Contiguous containers of pointers](#41-contiguous-containers-of-pointers)
-  - [4.2. Custom STL Allocator](#42-custom-stl-allocator)
-    - [4.2.1. STL Allocators - Per-Type Allocator](#421-stl-allocators---per-type-allocator)
-      - [4.2.1.1. Design Overview](#4211-design-overview)
-      - [4.2.1.2. Example of customizing STL allocator](#4212-example-of-customizing-stl-allocator)
-    - [4.2.2. Per-Instance Allocator](#422-per-instance-allocator)
-    - [4.2.3. Tuning the custom allocator](#423-tuning-the-custom-allocator)
-  - [4.3. Memory chunk caching for producer-consumer](#43-memory-chunk-caching-for-producer-consumer)
-  - [4.4. Small Size Optimizations](#44-small-size-optimizations)
-  - [4.5. Fighting memory fragmentation](#45-fighting-memory-fragmentation)
-- [5. System Allocators](#5-system-allocators)
-  - [5.1. Allocators on Linux](#51-allocators-on-linux)
-  - [5.2. The Performance Test](#52-the-performance-test)
-  - [5.3. Notes on using allocators in your program](#53-notes-on-using-allocators-in-your-program)
-- [6. Final Words](#6-final-words)
-- [7. Further Read](#7-further-read)
-
 
 # 1. Introduction
 
@@ -54,33 +31,21 @@ Because ***malloc*** and ***free*** are parts of [ISO C][iso-c], C/C++ compiler 
 
 For most scenes, the allocator demands large blocks of memory from the OS. From such blocks, the allocator splits out into smaller chunks to serve the requests made by programs. There are many approaches to managing these chunks out of a large block. Each algorithm differs in speed (will the allocation be fast) and memory usage.
 
-<figure>
-  <img decoding="async"
-    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/allocator-arena.png"
-    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/allocator-arena.png"
-    alt="">
-  <figcaption>
-    <i>
-      An example of how an allocator could use a large memory block to allocate small chunks. Given the already-allocated green chunks. When the allocator needs to allocate a new chunk, it traverses the list from Free Blocks Start. For speed optimization, the allocator can return the first chunk of the appropriate size (first-fit algorithm). For memory consumption, the allocator can return the chunk whose size most closely matches the requested size by the calling code (best-fit algorithm).
-    </i>
-  </figcaption>
-</figure>
+{{< figure
+    src="images/allocator-arena.png"
+    caption="Given the already-allocated green chunks. When the allocator needs to allocate a new chunk, it traverses the list from Free Blocks Start. For speed optimization, the allocator can return the first chunk of the appropriate size (first-fit algorithm). For memory consumption, the allocator can return the chunk whose size most closely matches the requested size by the calling code (best-fit algorithm)."
+>}}
+
 
 So **The allocator itself still needs an algorithm and takes time to find an appropriate block of a given size**. Moreover, **it gets harder to find the block over time**. The reason for this is called memory fragmentation.
 
 Given the following scenario, the heap consists of 5 chunks. The program allocates all of them, and after a time, it returns chunks 1, 3 and 4.
 
-<figure>
-  <img decoding="async"
-    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/memory-fragmentation-illustration.png"
-    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/memory-fragmentation-illustration.png"
-    alt="">
-  <figcaption>
-    <i>
-      Memory Fragmentation Illustration. Each block is 16 bytes in size. Green blocks are marked as allocated, and red blocks are available.
-    </i>
-  </figcaption>
-</figure>
+{{< figure
+    src="images/memory-fragmentation-illustration.png"
+    caption="Memory Fragmentation Illustration. Each block is 16 bytes in size. Green blocks are marked as allocated, and red blocks are available."
+>}}
+
 
 When the program requests a chunk of size 32 bytes (2 consecutive 16-byte chunks), the allocator would need to traverse to find the block of that size since it is available at 3 and 4. If the program wants to allocate a block of size 48 bytes, the allocator will fail because it cannot find a subset of contiguous chunks, although there are 48 bytes available in the large block (blocks 1, 3 and 4).
 
@@ -129,17 +94,10 @@ STL data structures like trees (e.g. ``set`` and ``map``), hash maps (e.g. ``uno
 
 **Fortunately, STL data structures accept user-specified ``Allocator`` as one of the template arguments**.
 
-<figure>
-  <img decoding="async"
-    src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png"
-    data-src="/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/vector-interface.png"
-    alt="">
-  <figcaption>
-    <i>
-      Template interface of <code>std::vector</code>. Issued in 01/02/2023.
-    </i>
-  </figcaption>
-</figure>
+{{< figure
+    src="images/vector-interface.png"
+    caption="Template interface of ``std::vector``. Issued in 01/02/2023."
+>}}
 
 STL data structures call special methods ``allocate`` to request memory and ``deallocate``  to release the unneeded memory from the ``Allocator``. Users can specify their own ``Allocator`` (by implementing these functions and satisfying the [STL ``Allocator`` requirements][stl-allocator-requirements] ) for their own needs.
 

@@ -1,5 +1,4 @@
 baseURL                       = "https://philong6297.github.io"
-copyright                     = "test-cpr"
 defaultContentLanguage        = "en"
 enableEmoji                   = true
 languageCode                  = "en"
@@ -10,8 +9,11 @@ pygmentsStyle                 = "bw"
 theme                         = "hugo-coder"
 title                         = "LongLP"
 
-
 [markup]
+  [markup.tableOfContents]
+    endLevel   = 3
+    ordered    = false
+    startLevel = 1
   [markup.highlight]
     anchorLineNos      = false
     codeFences         = true
@@ -24,10 +26,13 @@ title                         = "LongLP"
     noClasses          = true
     style              = 'onedark'
     tabWidth           = 2
-  [markup.goldmark.renderer]
-    hardWraps = false
-    unsafe    = true
-    xhtml     = true
+  [markup.goldmark]
+    parser.autoHeadingID     = true
+    parser.autoHeadingIDType = "github"
+    [markup.goldmark.renderer]
+      hardWraps = false
+      unsafe    = true
+      xhtml     = true
 
 [taxonomies]
   author   = "authors"
@@ -72,6 +77,9 @@ title                         = "LongLP"
   rtl                   = false
   since                 = "2021"
   touchIcon             = "images/apple-touch-icon.png"
+
+  # Minimum word count to display the Table of Contents
+  tocMinWordCount = 500
 
   [[params.social]]
     icon   = "fa fa-2x fa-github"
