@@ -1,6 +1,20 @@
 {
-  "evenBetterToml.schema.enabled": true,
-  "evenBetterToml.schema.associations": {
-    "config.toml": "https://json.schemastore.org/hugo.json"
-  }
+  "[markdown]": {
+    "editor.quickSuggestions": {
+      "other": "on",
+      "comments": "off",
+      "strings": "off"
+    }
+  },
+  "r.alwaysUseActiveTerminal": false,
+  "r.lsp.enabled": true,
+  "r.rmarkdown.preview.autoRefresh": true,
+  "r.rterm.windows": "C:/Users/longlp/scoop/apps/miniconda3/4.12.0/Scripts/radian.exe",
+  "r.bracketedPaste": true,
+  "r.lsp.diagnostics": true,
+  "r.rterm.option": [
+    "--no-save",
+    "--no-restore"
+  ],
+  "editor.formatOnSave": false
 }

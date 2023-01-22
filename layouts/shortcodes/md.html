@@ -1,0 +1,9 @@
+{{ with .Get 0 }}
+{{ with $.Page.Resources.Get . }}
+{{ .Content }}
+{{ else }}
+{{ errorf "The %s shortcode was unable to get %s. See %s" $.Name . $.Position }}
+{{ end }}
+{{ else }}
+{{ errorf "The %s shortcode requires one positional parameter. See %s" .Name .Position }}
+{{ end }}
