@@ -806,9 +806,9 @@ approaches that can help in these situations:
 # 5 System Allocators
 
 This section describes a solution to speed up programs by using a better
-system allocator for your needs. Several open-source allocators try to
-achieve efficient allocation and deallocation. Despite that, there has
-yet to be any allocator who has taken the holy grail.
+system allocator for individual needs. Several open-source allocators
+try to achieve efficient allocation and deallocation. Despite that,
+there has yet to be any allocator who has taken the holy grail.
 
 Regularly, there are four perspectives that each allocator compromises
 on:
@@ -822,8 +822,8 @@ on:
 - **Memory Fragmentation**: Some allocators have these issues than
   others, which can affect the speed of long-running applications.
 - **Cache/Data Locality**: Allocators which pack data in smaller blocks
-  and avoid memory losses have better cache/data locality (I will talk
-  about this in a follow-up article)
+  and avoid memory losses have better cache/data locality (which will be
+  discussed in a follow-up article)
 
 ## 5.1 Allocators on Linux
 
@@ -849,7 +849,7 @@ thinking about the following questions:
 
 - Single-thread or multi-threaded?
 - Maximum allocation speed or minimum memory consumption? What is the
-  trade-off that you are willing to take?
+  acceptable trade-off?
 - Is the allocator for the whole program or only the most critical
   parts?
 
@@ -896,7 +896,7 @@ chosen allocator. Allocators can provide prefixed versions of `malloc`
 and `free` for this purpose (e.g., **jemalloc** with the prefix `je_`).
 In this case, `malloc` and `free` will be left unchanged, and one can
 use `je_malloc` and `je_free` to allocate memory only for some parts of
-your program through `jemalloc`.
+the program through `jemalloc`.
 
 # 6 Conclusion
 
