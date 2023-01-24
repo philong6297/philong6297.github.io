@@ -670,17 +670,17 @@ speed, better memory usage, less fragmentation, or better data
 locality.</p></li></ul><h1 id=5-system-allocators>5 System Allocators
 <a class=heading-link href=#5-system-allocators><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><p>This section describes a solution to speed up programs by using a better
-system allocator for your needs. Several open-source allocators try to
-achieve efficient allocation and deallocation. Despite that, there has
-yet to be any allocator who has taken the holy grail.</p><p>Regularly, there are four perspectives that each allocator compromises
+system allocator for individual needs. Several open-source allocators
+try to achieve efficient allocation and deallocation. Despite that,
+there has yet to be any allocator who has taken the holy grail.</p><p>Regularly, there are four perspectives that each allocator compromises
 on:</p><ul><li><strong>Allocation Speed</strong>: Note that both the speed of <code>malloc</code> and <code>free</code>
 (<code>new</code> and <code>delete</code> in C++) are essential.</li><li><strong>Memory Consumption</strong>: Percentage of wasted memory after allocating.
 The allocator needs to keep some accounting info for each block, which
 generally takes up some space. Additionally, if the allocator
 optimizes for allocation speed, it can leave some memory unused.</li><li><strong>Memory Fragmentation</strong>: Some allocators have these issues than
 others, which can affect the speed of long-running applications.</li><li><strong>Cache/Data Locality</strong>: Allocators which pack data in smaller blocks
-and avoid memory losses have better cache/data locality (I will talk
-about this in a follow-up article)</li></ul><h2 id=51-allocators-on-linux>5.1 Allocators on Linux
+and avoid memory losses have better cache/data locality (which will be
+discussed in a follow-up article)</li></ul><h2 id=51-allocators-on-linux>5.1 Allocators on Linux
 <a class=heading-link href=#51-allocators-on-linux><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>When one does not specify any configurations, the Linux programs use
 <strong>GNU Allocator</strong>, based on <a href=http://www.malloc.de/en/><strong>ptmalloc</strong></a>. Apart from it, there are
@@ -691,7 +691,7 @@ does have one advantage, the worst-case runtime and memory usage will be
 all right.</p><p>Other allocators claim to be better in speed, memory usage, or
 cache/data locality. Before choosing a new system allocator, consider
 thinking about the following questions:</p><ul><li>Single-thread or multi-threaded?</li><li>Maximum allocation speed or minimum memory consumption? What is the
-trade-off that you are willing to take?</li><li>Is the allocator for the whole program or only the most critical
+acceptable trade-off?</li><li>Is the allocator for the whole program or only the most critical
 parts?</li></ul><p>In Linux, after installing the allocator, one can use an environment
 variable <code>LD_PRELOAD</code> to replace the default allocator with a custom
 one:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">1
@@ -720,7 +720,7 @@ chosen allocator. Allocators can provide prefixed versions of <code>malloc</code
 and <code>free</code> for this purpose (e.g., <strong>jemalloc</strong> with the prefix <code>je_</code>).
 In this case, <code>malloc</code> and <code>free</code> will be left unchanged, and one can
 use <code>je_malloc</code> and <code>je_free</code> to allocate memory only for some parts of
-your program through <code>jemalloc</code>.</p><h1 id=6-conclusion>6 Conclusion
+the program through <code>jemalloc</code>.</p><h1 id=6-conclusion>6 Conclusion
 <a class=heading-link href=#6-conclusion><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><p>This article represented several optimization solutions for how to
 allocate memory faster.</p><p><strong>Ready-made allocators have the benefit of being relatively easy to set
