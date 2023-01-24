@@ -1,36 +1,35 @@
-<!doctype html><html lang=en><head><title>Dymanic Memory Cost and Optimization Strategies: Allocation Speed · LongLP</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Phi-Long Le"><meta name=description content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Think about it like you are creating a monolith of memory with fixed size and use this resource in your entire program lifetime, no less."><meta name=keywords content="blog,developer,personal"><meta name=twitter:card content="summary"><meta name=twitter:title content="Dymanic Memory Cost and Optimization Strategies: Allocation Speed"><meta name=twitter:description content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Think about it like you are creating a monolith of memory with fixed size and use this resource in your entire program lifetime, no less."><meta property="og:title" content="Dymanic Memory Cost and Optimization Strategies: Allocation Speed"><meta property="og:description" content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Think about it like you are creating a monolith of memory with fixed size and use this resource in your entire program lifetime, no less."><meta property="og:type" content="article"><meta property="og:url" content="https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-12-31T00:00:00+00:00"><meta property="article:modified_time" content="2022-12-31T00:00:00+00:00"><link rel=canonical href=https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/><script class=longlp-local-custom-js src=/js/reorder_refs.min.fd945cc9618b50ec332e28d44d448c34f1c06746f690df382a29d4390f2f2818.js integrity="sha256-/ZRcyWGLUOwzLijUTUSMNPHAZ0b2kN84KinUOQ8vKBg="></script>
+<!doctype html><html lang=en><head><title>Dymanic Memory Cost and Optimization Strategies: Allocation Speed · LongLP</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Phi-Long Le"><meta name=description content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Usually, these programs create a monolith of memory with a fixed size (e.g. holding their memory in arrays or vectors) and typically access it linearly (but only sometimes so)."><meta name=keywords content="blog,developer,personal"><meta name=twitter:card content="summary"><meta name=twitter:title content="Dymanic Memory Cost and Optimization Strategies: Allocation Speed"><meta name=twitter:description content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Usually, these programs create a monolith of memory with a fixed size (e.g. holding their memory in arrays or vectors) and typically access it linearly (but only sometimes so)."><meta property="og:title" content="Dymanic Memory Cost and Optimization Strategies: Allocation Speed"><meta property="og:description" content="1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Usually, these programs create a monolith of memory with a fixed size (e.g. holding their memory in arrays or vectors) and typically access it linearly (but only sometimes so)."><meta property="og:type" content="article"><meta property="og:url" content="https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-12-31T00:00:00+00:00"><meta property="article:modified_time" content="2022-12-31T00:00:00+00:00"><link rel=canonical href=https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/><script class=longlp-local-custom-js src=/js/reorder_refs.min.fd945cc9618b50ec332e28d44d448c34f1c06746f690df382a29d4390f2f2818.js integrity="sha256-/ZRcyWGLUOwzLijUTUSMNPHAZ0b2kN84KinUOQ8vKBg="></script>
 <link class=longlp-local-custom-css rel=stylesheet href=/css/centered-figure.min.58c31c06b44923747027a56eca6baf739db3dd82625f1ee0d1fe33bf9e18ea6c.css integrity="sha256-WMMcBrRJI3RwJ6Vuymuvc52z3YJiXx7g0f4zv54Y6mw=" crossorigin=anonymous media=screen><link rel=preload href="/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=/css/coder.min.36f76aaf39a14ecf5c3a3c6250dcaf06c238b3d8365d17d646f95cb1874e852b.css integrity="sha256-NvdqrzmhTs9cOjxiUNyvBsI4s9g2XRfWRvlcsYdOhSs=" crossorigin=anonymous media=screen><link rel=stylesheet href=/css/coder-dark.min.216e36d3eaf6f4cdfd67dc1200c49a8169e6478102977b3e9ac51a064c57054c.css integrity="sha256-IW420+r29M39Z9wSAMSagWnmR4ECl3s+msUaBkxXBUw=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=/images/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/images/safari-pinned-tab.svg color=#5bbad5><meta name=generator content="Hugo 0.110.0"></head><body class="preload-transitions colorscheme-auto"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=/>LongLP</a>
 <input type=checkbox id=menu-toggle>
 <label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=/posts/>Blog</a></li><li class=navigation-item><a class=navigation-link href=/about/>About</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/>Dymanic Memory Cost and Optimization Strategies: Allocation Speed</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
 <time datetime=2022-12-31T00:00:00Z>December 31, 2022</time></span>
 <span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
-25-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
-<span class=tag><a href=/tags/cpp/>cpp</a></span></div></div></header><div class=post-content><h1>Table Of Contents</h1><nav id=TableOfContents><ul><li><a href=#1-introduction>1 Introduction</a></li><li><a href=#2-drawbacks-of-malloc-and-free-design>2 Drawbacks of <code>malloc</code> and <code>free</code> design</a><ul><li><a href=#21-memory-fragmentation>2.1 Memory fragmentation</a></li><li><a href=#22-thread-synchronization>2.2 Thread Synchronization</a></li></ul></li><li><a href=#3-program-slowness-caused-by-allocators>3 Program slowness caused by allocators</a></li><li><a href=#4-optimization-strategies>4 Optimization Strategies</a><ul><li><a href=#41-contiguous-containers-of-pointers>4.1 Contiguous containers of pointers</a></li><li><a href=#42-custom-stl-allocator>4.2 Custom STL Allocator</a><ul><li><a href=#421-stl-allocators---per-type-allocator>4.2.1 STL Allocators - Per-Type Allocator</a></li><li><a href=#422-per-instance-allocator>4.2.2 Per-Instance Allocator</a></li><li><a href=#423-tuning-the-custom-allocator>4.2.3 Tuning the custom allocator</a></li></ul></li><li><a href=#43-memory-chunk-caching-for-producer-consumer>4.3 Memory chunk caching for producer-consumer</a></li><li><a href=#44-small-size-optimizations>4.4 Small Size Optimizations</a></li><li><a href=#45-fighting-memory-fragmentation>4.5 Fighting memory fragmentation</a></li></ul></li><li><a href=#5-system-allocators>5 System Allocators</a><ul><li><a href=#51-allocators-on-linux>5.1 Allocators on Linux</a></li><li><a href=#52-the-performance-test>5.2 The Performance Test</a></li><li><a href=#53-notes-on-using-allocators-in-your-program>5.3 Notes on using allocators in your program</a></li></ul></li><li><a href=#6-final-words>6 Final Words</a></li><li><a href=#7-appendix>7 Appendix</a></li><li><a href=#8-references>8 References</a></li></ul></nav><h1 id=1-introduction>1 Introduction
+24-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=/tags/cpp/>cpp</a></span></div></div></header><div class=post-content><h1>Table Of Contents</h1><nav id=TableOfContents><ul><li><a href=#1-introduction>1 Introduction</a></li><li><a href=#2-drawbacks-of-malloc-and-free-design>2 Drawbacks of <code>malloc</code> and <code>free</code> design</a><ul><li><a href=#21-memory-fragmentation>2.1 Memory fragmentation</a></li><li><a href=#22-thread-synchronization>2.2 Thread Synchronization</a></li></ul></li><li><a href=#3-program-slowness-caused-by-allocators>3 Program slowness caused by allocators</a></li><li><a href=#4-optimization-strategies>4 Optimization Strategies</a><ul><li><a href=#41-contiguous-containers-of-pointers>4.1 Contiguous containers of pointers</a></li><li><a href=#42-custom-stl-allocator>4.2 Custom STL Allocator</a><ul><li><a href=#421-stl-allocators---per-type-allocator>4.2.1 STL Allocators - Per-Type Allocator</a></li><li><a href=#422-per-instance-allocator>4.2.2 Per-Instance Allocator</a></li><li><a href=#423-tuning-the-custom-allocator>4.2.3 Tuning the custom allocator</a></li></ul></li><li><a href=#43-memory-chunk-caching-for-producer-consumer>4.3 Memory chunk caching for producer-consumer</a></li><li><a href=#44-small-size-optimizations>4.4 Small Size Optimizations</a></li><li><a href=#45-fighting-memory-fragmentation>4.5 Fighting memory fragmentation</a></li></ul></li><li><a href=#5-system-allocators>5 System Allocators</a><ul><li><a href=#51-allocators-on-linux>5.1 Allocators on Linux</a></li><li><a href=#52-the-performance-test>5.2 The Performance Test</a></li><li><a href=#53-notes-on-using-allocators-in-the-program>5.3 Notes on using allocators in the program</a></li></ul></li><li><a href=#6-conclusion>6 Conclusion</a></li><li><a href=#7-appendix>7 Appendix</a></li><li><a href=#8-references>8 References</a></li></ul></nav><h1 id=1-introduction>1 Introduction
 <a class=heading-link href=#1-introduction><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><p>When it comes to memory usage, there are (typically) two types of
 programs. The first type is programs that <strong>allocate memory in large
 blocks</strong>. Usually, they know <strong>precisely how much memory they will need
-and can allocate it in advance</strong>. Think about it like you are creating a
-<strong>monolith of memory with fixed size</strong> and use this resource in your
-entire program lifetime, no less. These programs hold their memory in
-arrays or vectors and typically access it linearly (but only sometimes
+and can allocate it in advance</strong>. Usually, these programs create a
+monolith of memory with a fixed size (e.g. holding their memory in
+arrays or vectors) and typically access it linearly (but only sometimes
 so). These programs might even use dynamic memory, but when they do,
 they commonly call <code>malloc</code> only a few times during the program’s
 lifetime. In other words, memory allocation and memory organization are
-not typically limiting factors in these programs.</p><p>The second type of program, and more popular for us, uses memory
-differently. The programs do not know how many resources they will need
-(e.g. for scalability or security), so they might use data
-structures or some message passing that requires allocating a large
-number of memory chunks using <code>malloc</code> or <code>new</code> (C++). Thus, <strong>the
-program allocates a large number of memory chunks (typically small),
-uses them for some time and then returns them to the system</strong>.</p><p>Of course, programs need to spend time on memory allocation. However, if
-this time is too big, you can sense a performance bottleneck issue that
-you should investigate if the performance is crucial.</p><p>Please note that there are two things to consider when talking about the
-performance of dynamic memory usage:</p><ul><li><strong>memory allocation speed</strong>: This depends mostly on how good the
-implementations of <code>malloc</code> or <code>free</code> (<code>new</code> and <code>delete</code> in C++) are.</li><li><strong>allocator access speed</strong>: Access speed depends on hardware memory
-subsystems, and some system allocators are better at allocating memory
-in a way that benefits hardware memory subsystems.</li></ul><p><strong>In this post, I will talk about <strong>allocation speed</strong>, the big picture
-for why memory allocation and deallocation are slow and suggest a
+not typically limiting factors in these programs.</p><p>The second type of program, which is more well-known to us, uses memory
+differently. For development reasons (e.g. scalability or
+security), it is not straightforward to calculate how many resources a
+program of this type will need. Thus, they might use data structures or
+message passing, which require allocating a mass of small memory chunks
+(using <code>malloc</code>). Accordingly, the number of allocation/deallocation
+requests is much more than the former type.</p><p>Programs indeed need to spend time on memory allocation. However, for
+performance-crucial programs, it may raise a performance bottleneck
+issue. One should investigate if the allocation time is notably long.</p><p>Please note that there are two things to consider when talking about the
+performance of dynamic memory usage:</p><ul><li><strong>Memory Allocation Speed</strong>: depends mostly on how exemplary the
+implementations of <code>malloc</code> or <code>free</code> are.</li><li><strong>Allocator Access Speed</strong>: depends on hardware memory subsystems.
+Some system allocators are better at allocating memory in a way that
+benefits hardware memory subsystems.</li></ul><p><strong>This post focuses on allocation speed, demonstrates the causes of
+memory allocation/deallocation sluggishness, and suggests a
 (comprehensive) technique list on how to speed up critical places</strong>. The
 <strong>access speed</strong> will be the topic of a follow-up post.</p><h1 id=2-drawbacks-of-malloc-and-free-design>2 Drawbacks of <code>malloc</code> and <code>free</code> design
 <a class=heading-link href=#2-drawbacks-of-malloc-and-free-design><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
@@ -38,106 +37,107 @@ for why memory allocation and deallocation are slow and suggest a
 compiler vendors have implemented them based on The C Standard Library
 guideline. Undoubtedly, these functions meet all the requirements for
 general purposes. However, when talking about performance-critical
-software, they are usually the first thing you want to replace.</p><h2 id=21-memory-fragmentation>2.1 Memory fragmentation
+software, they are usually the first thing individual want to replace.</p><h2 id=21-memory-fragmentation>2.1 Memory fragmentation
 <a class=heading-link href=#21-memory-fragmentation><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>For most scenes, the allocator demands large blocks of memory from the
 OS. From such blocks, the allocator splits out into smaller chunks to
 serve the requests made by programs. There are many approaches to
 managing these chunks out of a large block. Each algorithm differs in
-speed (will the allocation be fast) and memory usage.</p><div class=figure style=text-align:center><img src=images/allocator-arena.png alt="Given the already-allocated green chunks. When the allocator needs to allocate a new chunk, it traverses the list from Free Blocks Start. For speed optimization, the allocator can return the first chunk of the appropriate size (first-fit algorithm). For memory consumption, the allocator can return the chunk whose size most closely matches the requested size by the calling code (best-fit algorithm)." width=100%><p class=caption>Given the already-allocated green chunks. When the allocator needs to
+speed (will the allocation be fast) and memory usage.</p><div class=figure style=text-align:center><img src=images/allocator-arena.png alt="Given the already-allocated green chunks, when the allocator needs to allocate a new chunk, it traverses the list from Free Blocks Start. For speed optimization, the allocator can return the first chunk of the appropriate size (first-fit algorithm). For memory consumption, the allocator can return the chunk whose size most closely matches the requested size by the calling code (best-fit algorithm)." width=100%><p class=caption>Given the already-allocated green chunks, when the allocator needs to
 allocate a new chunk, it traverses the list from Free Blocks Start. For
 speed optimization, the allocator can return the first chunk of the
 appropriate size (first-fit algorithm). For memory consumption, the
 allocator can return the chunk whose size most closely matches the
-requested size by the calling code (best-fit algorithm).</p></div><p>So <strong>The allocator itself still needs an algorithm and takes time to
-find an appropriate block of a given size</strong>. Moreover, <strong>it gets harder
-to find the block over time</strong>. The reason for this is called memory
-fragmentation.</p><p>Given the following scenario, the heap consists of 5 chunks. The program
+requested size by the calling code (best-fit algorithm).</p></div><p>However, <strong>the allocator itself still needs an algorithm and takes time
+to find an appropriate memory block of a given size</strong>. Moreover, it gets
+more challenging to find the block over time. The reason for this is
+called memory fragmentation.</p><p>Given the following scenario, the heap consists of 5 chunks. The program
 allocates all of them, and after a time, it returns chunks 1, 3 and 4.</p><div class=figure style=text-align:center><img src=images/memory-fragmentation-illustration.png alt="Memory Fragmentation Illustration. Each block is 16 bytes in size. Green blocks are marked as allocated, and red blocks are available." width=100%><p class=caption>Memory Fragmentation Illustration. Each block is 16 bytes in size. Green
-blocks are marked as allocated, and red blocks are available.</p></div><p>When the program requests a chunk of size 32 bytes (2 consecutive
-16-byte chunks), the allocator would need to traverse to find the block
-of that size since it is available at 3 and 4. If the program wants to
-allocate a block of size 48 bytes, the allocator will fail because it
-cannot find a subset of contiguous chunks, although there are 48 bytes
-available in the large block (blocks 1, 3 and 4).</p><p>Therefore, you can now imagine that <strong>as time passes, the <code>malloc</code> and
-<code>free</code> functions get slower because the block of appropriate size is
-more challenging to find</strong>. Moreover, suppose your program wants to
-allocate a larger block. In that case, the allocation might fail because
-a continuous chunk with the requested size is unavailable (even though
+blocks are marked as allocated, and red blocks are available.</p></div><p>In the above example, when the program requests a chunk of size 32 bytes
+(2 consecutive 16-byte chunks), the allocator would need to traverse to
+find the block of that size since it is available at 3 and 4. Suppose
+the program wants to allocate a block of size 48 bytes. In that case,
+the allocator will fail because it cannot find a subset of contiguous
+chunks. However, there are 48 bytes available in the large block (blocks
+1, 3 and 4).</p><p>Therefore, <strong>as time passes, the <code>malloc</code> and <code>free</code> functions get
+slower because the block of appropriate size is harder to find</strong>.
+Moreover, the allocation may fail for large block requests if a
+continuous chunk with the requested size is unavailable (even though
 there is enough memory in total).</p><p><strong>Memory fragmentation is a severe problem for long-running systems</strong>.
-It causes programs to become slower or run out of memory. Think about
-that you have a TV Box. You change a channel every 5 seconds for 48
-hours. In the beginning, it took 1 second for the video to start running
-after changing the channel. Then after 48 hours, it took 7 seconds to do
-the same. It is memory fragmentation.</p><h2 id=22-thread-synchronization>2.2 Thread Synchronization
+It causes programs to become slower or run out of memory. For example,
+given a TV Box, the user changes a channel every 5 seconds for 48 hours.
+In the beginning, it took 1 second for the video to start running after
+changing the channel. Then after 48 hours, it took 7 seconds to do the
+same. It is memory fragmentation.</p><h2 id=22-thread-synchronization>2.2 Thread Synchronization
 <a class=heading-link href=#22-thread-synchronization><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>For multi-threaded programs (typical for nowadays), <code>malloc</code> and <code>free</code>
-are <strong>required to be thread-safe</strong><sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup>. The simplest way that C/C++
+<span class=sr-only>Link to heading</span></a></h2><p>For multi-threaded programs (typical for nowadays), <strong><code>malloc</code> and
+<code>free</code> are required to be thread-safe</strong><sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup>. The simplest way a C/C++
 library vendor can implement them thread-safe is to introduce mutexes to
-protect the critical section of those functions, but this comes with a
-cost. <strong>Lock and unlock mutexes are expensive operations on
-multi-processor systems</strong><sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup>. <strong>Synchronization can waste the speed
+protect the critical section of those functions. However, it comes with
+a cost: mutex locking/unlocking are expensive operations on
+multi-processor systems<sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup>. <strong>Synchronization can waste the speed
 advantage, even how quickly the allocator can find a memory block of
 appropriate size</strong>.</p><p>Several allocators have guaranteed the performance in
 multi-threaded/multi-processor systems to resolve this issue. In
 general, the main idea is to make it synchronization-free if the memory
-block is exactly accessed from a single thread (e.g. reserving
+block is exactly accessed from a single thread. For example, reserving
 per-thread memory or maintaining per-thread cache for recently used
-memory chunks).</p><p>The above strategy works well for most of the use cases. However, the
-runtime performance can be awful when the program allocates and
-deallocates memory in different threads (worst-case). Moreover, this
+memory chunks.</p><p>The above strategy works well for most of the use cases. Nonetheless,
+the runtime performance can be awful when the program allocates and
+deallocates memory in different threads (worst-case). Furthermore, this
 strategy generally increases program memory usage.</p><h1 id=3-program-slowness-caused-by-allocators>3 Program slowness caused by allocators
 <a class=heading-link href=#3-program-slowness-caused-by-allocators><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><p>In overview, there are three main reasons which come from allocators
-that slow down the program:</p><ul><li><p><strong>Huge demands on the allocator</strong>: requesting to allocate/deallocate a
-large number of memory chunks (<code>malloc</code> and <code>free</code>) will limit the
-program performance.</p></li><li><p><strong>Memory fragmentation</strong>: the more fragmented memory is, the slower
-<code>malloc</code> and <code>free</code> are.</p></li><li><p><strong>Ineffective allocator implementation</strong>: allocators by C/C++ Standard
-Library are for general purposes, so they are not ideal for
-performance-critical programs.</p></li></ul><p>Resolving any of the above causes should make your program faster (in
-principle). Moreover, please note that these mentioned reasons are not
-entirely independent of each other. For example, reducing memory
-fragmentation can also be fixed by decreasing the pressure on the
-allocator.</p><h1 id=4-optimization-strategies>4 Optimization Strategies
+that slow down the program:</p><ul><li><p><strong>Massive demand on the allocator</strong>: Enormous memory chunk requests
+will limit the program’s performance.</p></li><li><p><strong>Memory fragmentation</strong>: The more fragmented memory is, the slower
+<code>malloc</code> and <code>free</code> are.</p></li><li><p><strong>Ineffective allocator implementation</strong>: Allocators by C/C++ Standard
+Library are for general purposes but not ideal for
+performance-critical programs.</p></li></ul><p>Resolving any of the above causes should make the program faster (in
+principle). These mentioned reasons are not entirely independent of each
+other. For example, reducing memory fragmentation can also be fixed by
+decreasing the pressure on the allocator.</p><h1 id=4-optimization-strategies>4 Optimization Strategies
 <a class=heading-link href=#4-optimization-strategies><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h1><p>The following sections present notable techniques to reduce the
-program’s dynamic memory consumption, to fasten its runtime
-performance.</p><p>Please note that,</p><blockquote><p>“We should forget about small efficiencies, say about 97% of the
+<span class=sr-only>Link to heading</span></a></h1><p>According to Donald Knuth <a href=#ref-premature-optimization>[5]</a>:</p><blockquote><p>“We should forget about small efficiencies, say about 97% of the
 time: premature optimization is the root of all evil. Yet we should
-not pass up our opportunities in that critical 3%”</p><p>— Donald Knuth <a href=#ref-premature-optimization>[5]</a></p></blockquote><p><strong>Know your domain and profile, and benchmark your program to find the
-slowness root cause</strong>. These sections are the suggestions for
-“fine-tuning” the applications. They do not provide or
-propose techniques to rewrite the program more efficiently.</p><h2 id=41-contiguous-containers-of-pointers>4.1 Contiguous containers of pointers
+not pass up our opportunities in that critical 3%”</p></blockquote><p><strong>One should consider profiling and benchmarking the program to find the
+root cause of slowness before optimizing</strong>. The following sections
+present effective techniques to reduce dynamic memory consumption and
+fasten runtime performance. They are suggestions for fine-tuning the
+applications. They do not provide or propose techniques to rewrite the
+program more efficiently.</p><h2 id=41-contiguous-containers-of-pointers>4.1 Contiguous containers of pointers
 <a class=heading-link href=#41-contiguous-containers-of-pointers><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>In C++, polymorphism can be achieved by using vectors of pointers (e.g.,
 <code>vector&lt;T*></code> or <code>vector&lt;unique_ptr&lt;T>></code>). However, this solution puts
-huge pressure on the system allocator: <strong>creating/releasing an
+massive pressure on the system allocator: <strong>creating/releasing an
 element(pointer) in the vector results in a call to <code>new</code> (<code>malloc</code>)</strong>.</p><p>Large vector(s) of pointers will lead to degradation in speed
 performance as the data set grows because of the demand pressure on the
 allocator and memory fragmentation.</p><p><strong>An approach for this issue is using a pointer of a vector of objects
 (e.g., <code>vector&lt;T>*</code> or <code>unique_ptr&lt;vector&lt;T>></code>)</strong>. This usage ensures
-all the elements in a continuous block, improves data locality (I will
-talk about data locality in the next post), and drastically decreases
-the number of calls to the system allocator.</p><p>However, this solution can only work for a single type. If you need
-polymorphism, there are several libraries that you can search for.
-Personally, I will choose <a href=https://github.com/microsoft/proxy><strong>proxy</strong></a>. This is an open-source,
-cross-platform, single-header C++ library, developed by Microsoft team,
+all the elements in a continuous block, improves data locality, and
+drastically decreases the number of calls to the system allocator.</p><p>However, this solution seems verbose since it can only work for a single
+type. Fortunately, several C++ polymorphism libraries have been built to
+resolve real-world problems. A fitting example is <a href=https://github.com/microsoft/proxy><strong>proxy</strong></a> from
+Microsoft. It is an open-source, cross-platform, single-header library
 for the purpose of making runtime polymorphism easier to implement and
 faster. Wang <a href=#ref-ms-proxy>[6]</a> has posted a detailed introduction on how to use
 the library.</p><h2 id=42-custom-stl-allocator>4.2 Custom STL Allocator
 <a class=heading-link href=#42-custom-stl-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>STL data structures like trees (e.g. <code>set</code> and <code>map</code>), hash maps
 (e.g. <code>unordered_set</code> and <code>unordered_map</code>), and vectors of pointers
-<strong>make a large number of requests for memory chunks from the
-allocator</strong>, increases memory fragmentation, as a consequence, decreases
-the performance.</p><p><strong>Fortunately, STL data structures accept user-specified <code>Allocator</code> as
-one of the template arguments</strong>.</p><p>STL data structures call special methods <code>allocate</code> to request memory
-and <code>deallocate</code> to release the unneeded memory from the <code>Allocator</code>.
-Users can specify their own <code>Allocator</code> (by implementing these functions
-and satisfying the <strong>STL <code>Allocator</code> requirements</strong><sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup>) for their own
-needs.</p><h3 id=421-stl-allocators---per-type-allocator>4.2.1 STL Allocators - Per-Type Allocator
+<strong>make many requests for memory chunks from the allocator</strong>,
+increasesing memory fragmentation and, as a consequence, decreases the
+performance.</p><p><strong>Fortunately, STL data structures accept a user-specified <code>Allocator</code>
+as one of the template arguments</strong>. These structures call <code>allocate</code> to
+request memory and <code>deallocate</code> to release the unneeded memory from the
+<code>Allocator</code>. Users can specify custom <code>Allocator</code> (by implementing these
+functions and satisfying the <strong>STL <code>Allocator</code> requirements</strong><sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup>) for
+their own needs.</p><h3 id=421-stl-allocators---per-type-allocator>4.2.1 STL Allocators - Per-Type Allocator
 <a class=heading-link href=#421-stl-allocators---per-type-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h3><p>Given <code>std::allocator</code> and <code>CustomStatelessAllocator</code> are stateless
+<span class=sr-only>Link to heading</span></a></h3><p>According to <a href=https://en.cppreference.com/w/cpp/named_req/Allocator#Stateful_and_stateless_allocators>cppreference</a>, issued in 01/02/2023, the C++20 Standard
+<a href=#ref-iso-cpp-20>[7]</a>, <a href=#ref-iec-cpp-20>[8]</a> has stated that:</p><blockquote><p>Every <code>Allocator</code> type is either <strong>stateful</strong> or <strong>stateless</strong>.
+Generally, a <strong>stateful</strong> allocator type can have unequal values which
+denote distinct memory resources, while a <strong>stateless</strong> allocator type
+denotes a single memory resource.</p></blockquote><p>Given <code>std::allocator</code> and <code>CustomStatelessAllocator</code> are stateless
 allocators, <code>CustomStatefulAllocator</code> is a stateful allocator. Consider
 the following information:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
@@ -179,32 +179,29 @@ the following information:</p><div class=highlight><div style=color:#abb2bf;back
 </span></span><span style=display:flex><span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>char</span><span style=color:#56b6c2>&gt;</span>,
 </span></span><span style=display:flex><span>         <span style=color:#e06c75>CustomStatefulAllocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>char</span>, <span style=color:#e5c07b>bool</span><span style=color:#56b6c2>&gt;&gt;&gt;</span>
 </span></span><span style=display:flex><span>    <span style=color:#e06c75>map_d</span>;
-</span></span></code></pre></td></tr></table></div></div><table><thead><tr><th>instance</th><th>allocator</th><th>group</th></tr></thead><tbody><tr><td><code>vector_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>vector_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>vector_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>vector_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>set_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>set_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>set_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>set_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>map_a</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code> (defaulted)</td><td>4</td></tr><tr><td><code>map_b</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code></td><td>4</td></tr><tr><td><code>map_c</code></td><td><code>CustomStatelessAllocator&lt;std::pair&lt;const char, bool>></code></td><td>5</td></tr><tr><td><code>map_d</code></td><td><code>CustomStatefulAllocator&lt;std::pair&lt;const char, bool>></code></td><td>6</td></tr></tbody></table><p>According to <a href=https://en.cppreference.com/w/cpp/named_req/Allocator#Stateful_and_stateless_allocators>cppreference</a>, issued in 01/02/2023, the C++20 Standard
-<a href=#ref-iso-cpp-20>[7]</a>, <a href=#ref-iec-cpp-20>[8]</a> has stated that:</p><blockquote><p>Every <code>Allocator</code> type is either <strong>stateful</strong> or <strong>stateless</strong>.
-Generally, a <strong>stateful</strong> allocator type can have unequal values which
-denote distinct memory resources, while a <strong>stateless</strong> allocator type
-denotes a single memory resource.</p></blockquote><p><strong><code>std::allocator</code> is per-type allocators</strong>: all the data structures of
-the same type share one instance of the allocator.</p><h4 id=4211-design-overview>4.2.1.1 Design Overview
+</span></span></code></pre></td></tr></table></div></div><table><thead><tr><th>instance</th><th>allocator</th><th>group</th></tr></thead><tbody><tr><td><code>vector_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>vector_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>vector_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>vector_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>set_a</code></td><td><code>std::allocator&lt;char></code> (defaulted)</td><td>1</td></tr><tr><td><code>set_b</code></td><td><code>std::allocator&lt;char></code></td><td>1</td></tr><tr><td><code>set_c</code></td><td><code>CustomStatelessAllocator&lt;char></code></td><td>2</td></tr><tr><td><code>set_d</code></td><td><code>CustomStatefulAllocator&lt;char></code></td><td>3</td></tr><tr><td><code>map_a</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code> (defaulted)</td><td>4</td></tr><tr><td><code>map_b</code></td><td><code>std::allocator&lt;std::pair&lt;const char, bool>></code></td><td>4</td></tr><tr><td><code>map_c</code></td><td><code>CustomStatelessAllocator&lt;std::pair&lt;const char, bool>></code></td><td>5</td></tr><tr><td><code>map_d</code></td><td><code>CustomStatefulAllocator&lt;std::pair&lt;const char, bool>></code></td><td>6</td></tr></tbody></table><p>From the results, it is evident that <strong><code>std::allocator</code> is per-type
+allocators</strong>: all the data structures of the same type share one
+instance of the allocator.</p><h4 id=4211-design-overview>4.2.1.1 Design Overview
 <a class=heading-link href=#4211-design-overview><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h4><p>In a regular allocator, memory chunks belonging to different data
 structures may end up next to one another in the memory. With an STL
 allocator, data from different domains are guaranteed in separate memory
-blocks. This design leads to several improvements:</p><ul><li><p><strong>Decreases memory fragmentation, increases data locality and access
-speed since data from the same data structure is in the same memory
-block</strong></p><ul><li>STL allocator guarantees that memory chunks are returned to the
+blocks. This design leads to several improvements:</p><ul><li><strong>Since data from the same data structure is in the same memory block,
+it not only decreases memory fragmentation but also increases data
+locality and access speed:</strong><ul><li>STL allocator guarantees that memory chunks are returned to the
 allocator when the data structure is destroyed. Additionally, when
 all data structures of the same type are destroyed, the STL
-allocator returns the free memory to the system.</li><li>Consecutive calls to <code>allocate</code> (<code>deallocate</code>) guarantee to return
-neighboring chunks in memory</li></ul></li><li><p><strong>Simple implementation opens up speed opportunities</strong>:</p><ul><li><strong>The allocator return only chunks of a (or multiple of) constant
+allocator returns the free memory to the system.</li><li>Consecutive calls to <code>allocate</code> and <code>deallocate</code> guarantee to return
+neighboring chunks in memory</li></ul></li><li><strong>Simple implementation opens up speed opportunities</strong>:<ul><li><strong>The allocator return only chunks of a (or multiple of) constant
 size</strong>: memory-fragmentation-free. Any free element will be a
 perfect fit for any request.<br>Also, since the size is already known (constant size), there is no
 need for chunk metadata that keeps the information about the
-chunk’s size.</li><li><strong>no thread-safe requirements</strong> unless the data structure is
+chunk’s size.</li><li><strong>No thread-safe requirements</strong> unless the data structure is
 allocated from several threads.</li></ul></li></ul><h4 id=4212-example-of-customizing-stl-allocator>4.2.1.2 Example of customizing STL allocator
 <a class=heading-link href=#4212-example-of-customizing-stl-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h4><p><strong>Arena Allocator</strong><sup id=fnref:5><a href=#fn:5 class=footnote-ref role=doc-noteref>5</a></sup> is commonly used for data structures that have
-little changes after their creation. Since deallocation is a no-op,
-destruction can be significantly fast.</p><p>This section provides a naive <strong>Arena Allocator</strong> implementation for
+<span class=sr-only>Link to heading</span></a></h4><p><strong>Arena Allocator</strong><sup id=fnref:5><a href=#fn:5 class=footnote-ref role=doc-noteref>5</a></sup> is commonly used for data structures with little
+changes after creation. Since deallocation is a no-op, destruction can
+be significantly fast.</p><p>This section provides a naive <strong>Arena Allocator</strong> implementation for
 <code>std::map</code>.</p><p>Given the definition of C++20 <code>std::map</code> <a href=#ref-iec-cpp-20>[8]</a>, issued in
 01/02/2023 from <a href=https://en.cppreference.com/w/cpp/container/map>cppreference</a>:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">2
@@ -219,12 +216,12 @@ destruction can be significantly fast.</p><p>This section provides a naive <stro
 </span></span><span style=display:flex><span>    <span style=color:#c678dd>class</span> <span style=color:#e5c07b>Allocator</span> <span style=color:#56b6c2>=</span> <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e06c75>Key</span>, <span style=color:#e06c75>T</span><span style=color:#56b6c2>&gt;&gt;</span>
 </span></span><span style=display:flex><span><span style=color:#56b6c2>&gt;</span> <span style=color:#c678dd>class</span> <span style=color:#e5c07b>map</span>;
 </span></span></code></pre></td></tr></table></div></div><p>There is a template parameter named <code>Allocator</code>, and it defaults to
-<code>std::allocator</code> (line 5). If you want to replace the allocator of
-<code>std::map</code>, you will need to write a class with a few methods that can
-serve as the replacement for the <code>std::allocator</code>.</p><p>Suppose you are using <code>std::map</code> to look up considerable elements, and
-then you destroy it as soon as afterward. You can provide a custom
-allocator that allocates from one specific block. Follow the below
-example:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+<code>std::allocator</code> (line 5). One can replace the default allocator by
+writing a class with a few methods that can replace the
+<code>std::allocator</code>.</p><p>Suppose a context uses <code>std::map</code> to look up a considerable number of
+elements, then destroy it as soon as afterwards. One can provide a
+custom allocator that allocates from one specific block. Follow the
+below example:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
@@ -294,61 +291,60 @@ example:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c
 </span></span></span><span style=display:flex><span><span style=color:#7f848e></span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>map</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>int</span>, <span style=color:#e06c75>my_class</span>, <span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>less</span><span style=color:#56b6c2>&lt;</span><span style=color:#e5c07b>int</span><span style=color:#56b6c2>&gt;</span>,
 </span></span><span style=display:flex><span>         <span style=color:#e06c75>arena_allocator</span><span style=color:#56b6c2>&lt;</span><span style=color:#e06c75>std</span><span style=color:#56b6c2>::</span><span style=color:#e06c75>pair</span><span style=color:#56b6c2>&lt;</span><span style=color:#c678dd>const</span> <span style=color:#e5c07b>int</span>, <span style=color:#e06c75>my_class</span><span style=color:#56b6c2>&gt;&gt;&gt;</span>
 </span></span><span style=display:flex><span>    <span style=color:#e06c75>my_ds</span>;
-</span></span></code></pre></td></tr></table></div></div><p>In the above example, on line 5, calling <code>mmap</code> to allocate a large
-block of memory from the OS (it will not allocate all that RAM unless
-the program uses it). When the <code>arena_allocator</code> instance is destroyed
-(line 11), the block will get returned to the system. Method <code>allocate</code>
-returns the first available chunk (lines 17-19) in the block, and method
-<code>deallocate</code> does not do anything. Allocate is fast, and deallocate is a
-no-op.</p><p>This approach will be ideal for the scene where we are allocating a
-complete <code>std::map</code> at the beginning and then do not do any removal
-operations. The tree (<code>std::map</code> is usually implemented as a red-black
-tree) will be compact in memory, which is good for the cache-hit rate
-and performance. It will make no memory fragmentation since the whole
-block is separated from other memory blocks.</p><p>When removing elements from <code>std::map</code>, even though <code>std::map</code> would
+</span></span></code></pre></td></tr></table></div></div><p>On line 5, call <code>mmap</code> to allocate a large memory block from the OS (it
+will not allocate all that RAM unless the program uses it). When the
+<code>arena_allocator</code> instance is destroyed (line 11), the block will get
+returned to the system. Method <code>allocate</code> returns the block’s
+first available chunk (lines 17-19), and method <code>deallocate</code> does
+nothing. Therefore, the allocation is fast, and deallocating is a no-op.</p><p>This approach is ideal for the scene where allocating a complete
+<code>std::map</code> at the beginning and then does not do any removal operations.
+The tree (<code>std::map</code> is usually implemented as a red-black tree) will be
+compact in memory, which is suiteable for the cache-hit rate and
+performance. It will make no memory fragmentation since the whole block
+is separated from other memory blocks.</p><p>When removing elements from <code>std::map</code>, even though <code>std::map</code> would
 call <code>deallocate</code>, no memory would be released. The program’s
-memory consumption would go up. If this is the case, we would want to
-implement the <code>deallocate</code> method, but allocation would also need to
-become more complex.</p><h3 id=422-per-instance-allocator>4.2.2 Per-Instance Allocator
+memory consumption would go up. If this is the case, one might need to
+implement the <code>deallocate</code> method, but allocation also needs to become
+more complex.</p><h3 id=422-per-instance-allocator>4.2.2 Per-Instance Allocator
 <a class=heading-link href=#422-per-instance-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h3><p><strong>Per-Instance Allocator</strong> is ideal when you have several large data
-structures of the same type. <strong>By using a per-instance allocator, the
-memory needed for a particular data structure instance will be allocated
-from a dedicated block instead of separating memory blocks per domain
-(allocating memory pool for each type)</strong>.</p><p>Take an example of a class <code>student</code> which is kept in a
-<code>std::map&lt;student_id_t, student></code>, given having two instances, one for
-the undergraduate students and the other for graduate students. With
-standard STL allocators, both hash maps share the same allocator. With a
-per-instance allocator, when destroying an instance, the whole memory
-block used for that instance is empty and can be directly returned to
-the OS. This benefits memory fragmentation reduction and data locality
-increment (faster map traversal).</p><p><strong>Unfortunately, STL data structures do not support per-instance
-allocators, so in this case, you would need to write your data structure
-with per-instance allocators support</strong>.</p><h3 id=423-tuning-the-custom-allocator>4.2.3 Tuning the custom allocator
+<span class=sr-only>Link to heading</span></a></h3><p><strong>Per-Instance Allocator</strong> is ideal when having several large data
+structures of the same type. By using it, the memory needed for a
+particular data structure instance will be allocated from a dedicated
+block instead of separating memory blocks per domain (allocating a
+memory pool for each type).</p><p>Take an example of <code>std::map&lt;student_id, student></code>, given having two
+instances, one for undergraduate students and the other for graduate
+students. With standard STL allocators, both hash maps share the same
+allocator. With a per-instance allocator, when destroying an instance,
+the whole memory block used for that instance is empty and can be
+directly returned to the OS. This benefits memory fragmentation
+reduction and data locality increment (faster map traversal).</p><p><strong>Unfortunately, STL data structures do not support per-instance
+allocators. Thus, rewriting the data structure with
+per-instance-allocator support is indeed a need</strong>.</p><h3 id=423-tuning-the-custom-allocator>4.2.3 Tuning the custom allocator
 <a class=heading-link href=#423-tuning-the-custom-allocator><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h3><p><strong>A custom allocator can be adjusted to a specific environment for
-maximum performance. Knowing your domain will help to pick the right
-strategy for your custom allocator</strong>. The following approaches can be
-taken into account:</p><ul><li><strong>Static allocator</strong>: Preloading with enough space to store elements
+maximum performance</strong>. The following approaches can be taken into
+account when choosing the right strategy for an individual’s
+custom allocator:</p><ul><li><strong>Static allocator</strong>: Preloading with enough space to store elements
 can be perfectly fit for small data structures. If the context
 requires extra memory, the allocator can request it from the system
 allocator. This approach can substantially decrease the number of
-calls to the system allocator.</li><li><strong>Arena allocator</strong>: Only release memory when the allocator is
-destroyed. It is useful for large data structures that are mostly
-static after creation.</li><li><strong>Cache allocator</strong>: When deallocating, keep certain chunks in the
+calls to the system allocator.</li><li><strong>Arena allocator</strong>: Releasing memory only when the allocator is
+destroyed. It is helpful for large data structures that are primarily
+static after creation.</li><li><strong>Cache allocator</strong>: When deallocating, keep specific chunks in the
 cache instead of returning the whole memory to the system allocator
 for future usage of allocating requests. Despite not decreasing memory
 fragmentation, this approach can slow down fragmenting progression.</li></ul><h2 id=43-memory-chunk-caching-for-producer-consumer>4.3 Memory chunk caching for producer-consumer
 <a class=heading-link href=#43-memory-chunk-caching-for-producer-consumer><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>Given a producer thread allocates an object and sends it to the consumer
-thread. After processing, the consumer thread destroys the object and
-releases the memory back to the OS. <strong>This context puts a large pressure
-on the system allocator. One approach is to allocate all the objects
-from a dedicated memory pool using a custom allocator.</strong></p><p>In C++, you could overload <code>operator new/delete</code> to use the new
-allocator. However, since the object memory lifetime is controlled in
-separate threads, you must be aware of synchronization. One idea is to
-use a memory cache on both the allocation and deallocation places.
-Consider the following source code:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+<span class=sr-only>Link to heading</span></a></h2><p>Take an example where a producer thread allocates an object and sends it
+to the consumer thread. After processing, the consumer thread destroys
+the object and releases the memory back to the OS. <strong>This context puts
+significant pressure on the system allocator. One approach is to
+allocate all the objects from a dedicated memory pool using a custom
+allocator.</strong></p><p>In C++, one could overload the <code>operator new/delete</code> to use the new
+allocator. However, synchronisation must be aware since the object
+memory lifetime is controlled in separate threads. One idea is to use a
+memory cache on both the allocation and deallocation places. Consider
+the following source code:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
@@ -475,24 +471,25 @@ to the system allocator. Instead, it is cached</strong> (line 37).<ul><li>If <co
 <code>common_cache_</code>(line 28). When the <code>common_cache_</code> becomes full, the
 remaining memory chunks are released back to the system allocator
 (lines 32-34). <code>deallocation_cache_</code> is empty after this operation.</li><li>Access to <code>common_cache_</code> has to be secured with a mutex (lines 27
-and 29).</li><li>Access to <code>deallocation_cache_</code> is the common case, we only need to
-access <code>common_cache_</code> when <code>deallocation_cache_</code> is full.</li></ul></li><li><strong>When <code>allocate</code> is called, if available, a memory chunk is taken
-from the cache</strong> (line 20).<ul><li>If <code>allocation_cache_</code> is empty, then additional memory chunks are
-taken from the <code>common_cache_</code>(line 10). The <code>memory_pool</code> will move
+and 29).</li><li>Access to <code>deallocation_cache_</code> is the typical case.<code>memory_pool</code>
+only need to access <code>common_cache_</code> when <code>deallocation_cache_</code> is
+full.</li></ul></li><li><strong>When <code>allocate</code> is called, if available, a memory chunk is taken
+from the cache</strong> (line 20).<ul><li>If <code>allocation_cache_</code> is empty, additional memory chunks are taken
+from the <code>common_cache_</code>(line 10). The <code>memory_pool</code> will move
 chunks (as much as possible) from the <code>common_cache_</code> to the
-<code>allocation_cache_</code>until <code>allocation_cache_</code> is full.</li><li>If the <code>allocation_cache_</code> is not full after this operation, the
-system allocator will request additional memory chunks (lines 15
-– 17).</li><li>Access to <code>common_cache_</code> has to be secured with a mutex (lines 9
-and 12).</li><li>Access to <code>allocation_cache_</code> is the common case, we only need to
-access <code>common_cache_</code> when <code>allocation_cache_</code> is empty.</li></ul></li></ul><p>This solution works only with two threads, one allocates, and the other
-deallocate objects.</p><p>For optimally, the size of <code>allocation_cache_</code>, <code>deallocation_cache_</code>
-and <code>common_cache_</code> need to be chosen carefully:</p><ul><li>Small values make the <code>memory_pool</code> work more with the system
-allocator than the cached chunk lists.</li><li>Large value makes the <code>memory_pool</code> consume more memory.</li><li>An ideal size for <code>common_cache_</code> is 2 times bigger than the capacity
-of the others.</li></ul><h2 id=44-small-size-optimizations>4.4 Small Size Optimizations
+<code>allocation_cache_</code>until <code>allocation_cache_</code> is full.</li><li>If the <code>allocation_cache_</code> is not filled after this operation, the
+system allocator will request additional memory chunks (lines
+15-17).</li><li>Access to <code>common_cache_</code> has to be secured with a mutex (lines 9
+and 12).</li><li>Access to <code>allocation_cache_</code> is the regular case. <code>memory_pool</code>
+only need to access <code>common_cache_</code> when <code>allocation_cache_</code> is
+empty.</li></ul></li></ul><p>This solution works only with two threads, one allocates, and the other
+deallocates objects.</p><p>For optimally, the size of <code>allocation_cache_</code>, <code>deallocation_cache_</code>
+and <code>common_cache_</code> need to be chosen carefully:</p><ul><li>Using small values forces the <code>memory_pool</code> to work more with the
+system allocator than the cached chunk lists.</li><li>Using large values causes the <code>memory_pool</code> to consume more memory.</li><li>An ideal size for <code>common_cache_</code> is about two times bigger than the
+capacity of the others.</li></ul><h2 id=44-small-size-optimizations>4.4 Small Size Optimizations
 <a class=heading-link href=#44-small-size-optimizations><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>Given class <code>small_vector</code> for storing integers, after profiling, you
-see that in most of the runtime cases, these objects have small sizes of
-up to 4. Consider the following (naive) implementation:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+<span class=sr-only>Link to heading</span></a></h2><p>Given the class <code>small_vector</code> for storing integers with the following
+(naive) implementation:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
@@ -524,8 +521,10 @@ up to 4. Consider the following (naive) implementation:</p><div class=highlight>
 </span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>size_</span>;
 </span></span><span style=display:flex><span>  <span style=color:#e06c75>size_t</span> <span style=color:#e06c75>capacity_</span>;
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></td></tr></table></div></div><p><strong>We could pre-allocate 4 integers, thus, totally reducing calls to the
-system allocator</strong>.</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
+</span></span></code></pre></td></tr></table></div></div><p>Suppose the profiling report shows that in most of the runtime cases,
+these objects have small sizes of up to 4. <strong>A solution could be
+pre-allocating four integers, thus, totally reducing calls to the system
+allocator</strong>:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 2
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 3
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f"> 4
@@ -561,9 +560,10 @@ system allocator</strong>.</p><div class=highlight><div style=color:#abb2bf;back
 </span></span></span><span style=display:flex><span><span style=color:#7f848e></span>  <span style=color:#c678dd>static</span> <span style=color:#c678dd>constexpr</span> <span style=color:#e5c07b>int</span> <span style=color:#e06c75>kPreAllocatedSize</span> <span style=color:#56b6c2>=</span> <span style=color:#d19a66>4</span>;
 </span></span><span style=display:flex><span>  <span style=color:#e5c07b>int</span> <span style=color:#e06c75>pre_allocated_storage_</span>[<span style=color:#e06c75>kPreAllocatedSize</span>];
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></td></tr></table></div></div><p>If we create <code>small_vector</code> with a capacity less than or equal to
-<code>kPreAllocatedSize</code> (lines 6-7), we use the <code>pre_allocated_storage_</code>.
-Otherwise, we call the system allocator as usual (lines 9-10).</p><p>However, the drawback is the class size increment. On a 64-bit system,
+</span></span></code></pre></td></tr></table></div></div><p>The above codes illustrate creating a <code>small_vector</code> with a capacity
+less than or equal to <code>kPreAllocatedSize</code> (lines 6-7) for ordinary use
+cases by using <code>pre_allocated_storage_</code>. Otherwise, call the system
+allocator as the origin implementation (lines 9-10).</p><p>However, the drawback is the class size increment. On a 64-bit system,
 the original was 24 bytes, while the new is 40 bytes.</p><p><strong>A common solution is using C unions to overlay the data for the
 pre-allocated case and the heap-allocated case</strong>. The most significant
 bit in <code>size_</code> can be used for authorization between these cases (<code>0</code>
@@ -653,10 +653,10 @@ for pre-allocated and <code>1</code> for heap-allocated).</p><div class=highligh
 <code>std::string</code> implementation</strong><sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-noteref>6</a></sup>.</p><h2 id=45-fighting-memory-fragmentation>4.5 Fighting memory fragmentation
 <a class=heading-link href=#45-fighting-memory-fragmentation><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p>It is always challenging to reduce memory fragmentation or make it never
-happens. Sometimes, it is caused by the system, and we cannot do
-anything. There are a few approaches that can help in these situations:</p><ul><li><p><strong>Restart</strong>: some systems will occasionally restart to avoid memory
+happens. Sometimes, it is caused by the system. There are a few
+approaches that can help in these situations:</p><ul><li><p><strong>Restart</strong>: some systems will occasionally restart to avoid memory
 fragmentation. However, creating a restartable or state-restorable
-program or system can be challenging.</p></li><li><p><strong>Preallocate memory upfront</strong>: Some programs pre-allocate all the
+program or system can be challenging.</p></li><li><p><strong>Pre-allocate memory upfront</strong>: Some programs pre-allocate all the
 needed memory at the start and then completely dispense with dynamic
 memory allocation. MISRA coding guidelines even forbids the usage of
 dynamic memory in the automotive industry:</p><blockquote><p>MISRA C++ 2008 <a href=#ref-misra-cpp-2008>[11]</a>, 18-4-1 - Dynamic heap memory allocation
@@ -669,31 +669,30 @@ used instead of the built-in one and which promise faster allocation
 speed, better memory usage, less fragmentation, or better data
 locality.</p></li></ul><h1 id=5-system-allocators>5 System Allocators
 <a class=heading-link href=#5-system-allocators><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h1><p><strong>This section writes about a solution to speed up your program: using a
-better system allocator for your needs.</strong> Several open-source allocators
-try to achieve efficient allocation and deallocation. However, at the
-time of writing and personal observation, there has yet to be any
-allocator who has taken the holy grail.</p><p>Regularly, there are four perspectives that each allocator compromises
+<span class=sr-only>Link to heading</span></a></h1><p>This section describes a solution to speed up programs by using a better
+system allocator for your needs. Several open-source allocators try to
+achieve efficient allocation and deallocation. Despite that, there has
+yet to be any allocator who has taken the holy grail.</p><p>Regularly, there are four perspectives that each allocator compromises
 on:</p><ul><li><strong>Allocation Speed</strong>: Note that both the speed of <code>malloc</code> and <code>free</code>
-(<code>new</code> and <code>delete</code>) are important.</li><li><strong>Memory Consumption</strong>: Percentage of wasted memory after allocating.
+(<code>new</code> and <code>delete</code> in C++) are essential.</li><li><strong>Memory Consumption</strong>: Percentage of wasted memory after allocating.
 The allocator needs to keep some accounting info for each block, which
-normally takes up some space. Additionally, if the allocator optimizes
-for allocation speed, it can leave some memory unused.</li><li><strong>Memory Fragmentation</strong>: Some allocators have these issues than
+generally takes up some space. Additionally, if the allocator
+optimizes for allocation speed, it can leave some memory unused.</li><li><strong>Memory Fragmentation</strong>: Some allocators have these issues than
 others, which can affect the speed of long-running applications.</li><li><strong>Cache/Data Locality</strong>: Allocators which pack data in smaller blocks
 and avoid memory losses have better cache/data locality (I will talk
 about this in a follow-up article)</li></ul><h2 id=51-allocators-on-linux>5.1 Allocators on Linux
 <a class=heading-link href=#51-allocators-on-linux><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>When using <code>malloc</code> and <code>free</code> (<code>new</code> and <code>delete</code>) in your program,
-normally, the C standard library implements those functions. Its
-allocator is called <strong>GNU Allocator</strong>, based on <a href=http://www.malloc.de/en/><strong>ptmalloc</strong></a>. Apart
-from it, there are several other open-source allocators commonly used on
-Linux: <a href=https://github.com/google/tcmalloc><strong>tcmalloc</strong></a> (by Google), <a href=https://github.com/jemalloc/jemalloc><strong>jemalloc</strong></a> (by Facebook),
+<span class=sr-only>Link to heading</span></a></h2><p>When one does not specify any configurations, the Linux programs use
+<strong>GNU Allocator</strong>, based on <a href=http://www.malloc.de/en/><strong>ptmalloc</strong></a>. Apart from it, there are
+several other open-source allocators commonly used on Linux:
+<a href=https://github.com/google/tcmalloc><strong>tcmalloc</strong></a> (by Google), <a href=https://github.com/jemalloc/jemalloc><strong>jemalloc</strong></a> (by Facebook),
 <a href=https://github.com/microsoft/mimalloc><strong>mimalloc</strong></a> (by Microsoft) and <a href=https://github.com/emeryberger/Hoard><strong>hoard allocator</strong></a>.</p><p>GNU Allocator is not among the most efficient allocators. However, it
 does have one advantage, the worst-case runtime and memory usage will be
 all right.</p><p>Other allocators claim to be better in speed, memory usage, or
 cache/data locality. Before choosing a new system allocator, consider
 thinking about the following questions:</p><ul><li>Single-thread or multi-threaded?</li><li>Maximum allocation speed or minimum memory consumption? What is the
-trade-off that you are willing to take?</li><li>Allocator for the whole program or only for the most critical parts?</li></ul><p>In Linux, after installing the allocator, you can use an environment
+trade-off that you are willing to take?</li><li>Is the allocator for the whole program or only the most critical
+parts?</li></ul><p>In Linux, after installing the allocator, one can use an environment
 variable <code>LD_PRELOAD</code> to replace the default allocator with a custom
 one:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#abb2bf;background-color:#282c34;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">1
 </span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#55595f">2
@@ -701,37 +700,38 @@ one:</p><div class=highlight><div style=color:#abb2bf;background-color:#282c34;-
 </span></span><span style=display:flex><span>./my_program
 </span></span></code></pre></td></tr></table></div></div><h2 id=52-the-performance-test>5.2 The Performance Test
 <a class=heading-link href=#52-the-performance-test><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
-<span class=sr-only>Link to heading</span></a></h2><p>Real-world programs differ too much from one another. Therefore, in this
-article’s scope, I cannot provide a comprehensive benchmark for
-allocator performance. An allocator performing well under one load might
-have different behavior under another.</p><p>“No Bugs” Hare <a href=#ref-it-hare-testing-allocators>[14]</a> has compared several allocators
+<span class=sr-only>Link to heading</span></a></h2><p>Real-world programs differ too much from one another. Therefore,
+providing a comprehensive benchmark for allocator performance is
+impossible in this article’s scope. An allocator performing well
+under one load can have different behaviour under another.</p><p>“No Bugs” Hare <a href=#ref-it-hare-testing-allocators>[14]</a> has compared several allocators
 on a test load that tries to simulate a real-world load. According to
 the author’s conclusion:</p><blockquote><p>allocators are similar, and testing your particular application is
-more important than relying on synthetic benchmarks.</p></blockquote><h2 id=53-notes-on-using-allocators-in-your-program>5.3 Notes on using allocators in your program
-<a class=heading-link href=#53-notes-on-using-allocators-in-your-program><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+more important than relying on synthetic benchmarks.</p></blockquote><h2 id=53-notes-on-using-allocators-in-the-program>5.3 Notes on using allocators in the program
+<a class=heading-link href=#53-notes-on-using-allocators-in-the-program><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h2><p><strong>All the allocators can be fine-tuned to run better on a particular
 system</strong>, but the default configuration should be enough for most use
 cases. Fine-tuning can be done through environment variables,
-configuration files, or compilation options.</p><p>Normally the allocators provide implementations for <code>malloc</code> and <code>free</code>
-and will replace the functions with the same name provided by the
-Standard C library. This design means that your program’s dynamic
-allocation goes through the new allocator.</p><p>However, it is possible to keep default <code>malloc</code> and <code>free</code>
-implementations together with custom implementations provided by your
+configuration files, or compilation options.</p><p>Usually, the allocators provide implementations for <code>malloc</code> and <code>free</code>,
+and replace the functions with the same name provided by the Standard C
+Library. This design means the program’s dynamic allocation goes
+through the new allocator.</p><p>However, it is possible to keep default <code>malloc</code> and <code>free</code>
+implementations separately with custom implementations provided by the
 chosen allocator. Allocators can provide prefixed versions of <code>malloc</code>
 and <code>free</code> for this purpose (e.g., <strong>jemalloc</strong> with the prefix <code>je_</code>).
-In this case, <code>malloc</code> and <code>free</code> will be left unchanged, and you can
+In this case, <code>malloc</code> and <code>free</code> will be left unchanged, and one can
 use <code>je_malloc</code> and <code>je_free</code> to allocate memory only for some parts of
-your program through <code>jemalloc</code>.</p><h1 id=6-final-words>6 Final Words
-<a class=heading-link href=#6-final-words><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+your program through <code>jemalloc</code>.</p><h1 id=6-conclusion>6 Conclusion
+<a class=heading-link href=#6-conclusion><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><p>This article represented several optimization solutions for how to
-allocate memory faster.</p><p><strong>Ready-made allocators have the benefit of being very easy to set up,
-and you can see the improvements within minutes</strong>.</p><p><strong>Other battle-tested techniques are also powerful when used
+allocate memory faster.</p><p><strong>Ready-made allocators have the benefit of being relatively easy to set
+up, and one can see the improvements within minutes</strong></p><p><strong>Other battle-tested techniques are also powerful when used
 correctly</strong>. For example, decreasing allocation requests by avoiding
 pointers removes much stress from the system allocator; using custom
 allocators can benefit allocation speed and decrease memory
-fragmentation, etc.</p><p>Last but not least, <strong>know your domain and profile, benchmark your
-program to find the slowness root cause before optimizing, try multiple
-approaches, and repeat.</strong></p><h1 id=7-appendix>7 Appendix
+fragmentation.</p><p>Lastly, people need to <strong>know their domain and profile the program to
+find the root cause of slowness before optimizing, then try multiple
+approaches</strong>. Repeating this process is indeed improving the
+program’s quality.</p><h1 id=7-appendix>7 Appendix
 <a class=heading-link href=#7-appendix><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
 <span class=sr-only>Link to heading</span></a></h1><h1 id=8-references>8 References
 <a class=heading-link href=#8-references><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
@@ -773,20 +773,23 @@ Commission; ISO/IEC 14882:2020, International Standard, Dec.
 “Region-based memory management,” <em>Information and
 Computation</em>, vol. 132, no. 2, pp. 109–176, 1997, doi:
 <a href=https://doi.org/10.1006/inco.1996.2613>https://doi.org/10.1006/inco.1996.2613</a>.</span></p></div><div id=ref-libcpp-implementation class=csl-entry><p><span class=csl-left-margin>[10]
-</span><span class=csl-right-inline>J. Laity, “Libc++’s
-implementation of std::string.” joellaity, blog, 2020
-[Online].Available:
+</span><span class=csl-right-inline>J. Laity,
+“<span class=nocase>libc++’s implementation of
+std::string</span>.” joellaity, blog, 2020 [Online].Available:
 <a href=https://joellaity.com/2020/01/31/string.html>https://joellaity.com/2020/01/31/string.html</a></span></p></div><div id=ref-misra-cpp-2008 class=csl-entry><p><span class=csl-left-margin>[11]
-</span><span class=csl-right-inline>M. I. S. R. Association,
-<em>MISRA-c++:2008: Guidelines for the use of the c++ language in critical
-systems</em>. MIRA Limited, 2008.Available:
+</span><span class=csl-right-inline>Motor Industry Software
+Reliability Association, <em><span class=nocase>MISRA-C++:2008:
+Guidelines for the Use of the C++ Language in Critical Systems</span></em>.
+MIRA Limited, 2008.Available:
 <a href="https://books.google.com.vn/books?id=bNUqPQAACAAJ">https://books.google.com.vn/books?id=bNUqPQAACAAJ</a></span></p></div><div id=ref-misra-c-2004 class=csl-entry><p><span class=csl-left-margin>[12]
-</span><span class=csl-right-inline>M. I. S. R. Association,
-<em><span class=nocase>MISRA-C:2004: Guidelines for the Use of the C
-Language in Critical Systems</span></em>. MIRA, 2004.Available:
+</span><span class=csl-right-inline>Motor Industry Software
+Reliability Association, <em><span class=nocase>MISRA-C:2004: Guidelines
+for the Use of the C Language in Critical Systems</span></em>. MIRA,
+2004.Available:
 <a href="https://books.google.com.vn/books?id=j6oXAAAACAAJ">https://books.google.com.vn/books?id=j6oXAAAACAAJ</a></span></p></div><div id=ref-misra-c-2012 class=csl-entry><p><span class=csl-left-margin>[13]
-</span><span class=csl-right-inline>M. I. S. R. Association, M. I. S.
-R. A. Staff, H. M. Ltd, and H. M. Ltd. Staff,
+</span><span class=csl-right-inline>Motor Industry Software
+Reliability Association and Motor Industry Software Reliability
+Association Staff and HORIBA MIRA Ltd and HORIBA MIRA Ltd. Staff,
 <em><span class=nocase>MISRA C:2012: Guidelines for the Use of the C
 Language in Critical Systems</span></em>. Unknown Publisher, 2019.Available:
 <a href="https://books.google.com.vn/books?id=daApxQEACAAJ">https://books.google.com.vn/books?id=daApxQEACAAJ</a></span></p></div><div id=ref-it-hare-testing-allocators class=csl-entry><p><span class=csl-left-margin>[14]
@@ -813,25 +816,25 @@ same or a part of the same region of memory. This synchronization
 occurs after any access to the memory by the deallocating function
 and before any access to the memory by malloc. There is a single
 total order of all allocation and deallocation functions operating
-on each particular region of memory.</p></blockquote>&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></li><li id=fn:3><p>Stackoverflow user “Dummy00001” has explained the
+on each particular region of memory.</p></blockquote>&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></li><li id=fn:3><p>Stackoverflow user “Dummy00001” has explained that the
 primary overhead of mutexes is from the memory/cache coherency
-guarantees <a href=#ref-mutex-lock-cost-explain>[3]</a>. In the same article, user “Carlo
+guarantees <a href=#ref-mutex-lock-cost-explain>[3]</a>. In the same article, the user “Carlo
 Wood” has also benchmarked the number of clocks it takes to
 lock/unlock mutex on a decent multi-core machine and gave favorable
-results with “Dummy00001”’s answer <a href=#ref-mutex-lock-cost-benchmark>[4]</a>&#160;<a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4><p>A summary of C++20 Standard <code>Allocator</code> requirements <a href=#ref-iso-cpp-20>[7]</a>,
-<a href=#ref-iec-cpp-20>[8]</a> can be found at <a href=https://en.cppreference.com/w/cpp/named_req/Allocator#Requirements>cppreference</a>&#160;<a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:5><p><strong>Region-based memory management</strong><a href=#ref-region-based-memory-management>[9]</a> (also known as
-arena) is a type of memory management in which each allocated object
-is assigned to a region, which is a collection of allocated objects
-that can be efficiently reallocated or deallocated all at once. Like
-stack allocation, regions facilitate allocation and deallocation of
-memory with low overhead; but they are more flexible, allowing
-objects to live longer than the stack frame in which they were
-allocated. In typical implementations, all objects in a region are
-allocated in a single contiguous range of memory addresses,
-similarly to how stack frames are typically allocated.&#160;<a href=#fnref:5 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:6><p>The implementation of <strong>libc++ <code>std::string</code></strong> can be found at
+results with “Dummy00001”’s statement<a href=#ref-mutex-lock-cost-benchmark>[4]</a>.&#160;<a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4><p>A summary of C++20 Standard <code>Allocator</code> requirements <a href=#ref-iso-cpp-20>[7]</a>,
+<a href=#ref-iec-cpp-20>[8]</a> can be found at <a href=https://en.cppreference.com/w/cpp/named_req/Allocator#Requirements>cppreference</a>&#160;<a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:5><p><strong>Region-based memory management</strong><a href=#ref-region-based-memory-management>[9]</a> is a type of memory
+management in which each allocated object is assigned to a region.
+The region (also known as the arena) is a collection of allocated
+objects that can be efficiently reallocated or deallocated all at
+once. Like stack allocation, regions facilitate the allocation and
+deallocation of memory with low overhead. However, they are more
+flexible, allowing objects to live longer than the stack frame in
+which they were allocated. In typical implementations, all objects
+in a region are allocated in a single contiguous range of memory
+addresses, similar to how stack frames are typically allocated.&#160;<a href=#fnref:5 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:6><p>The implementation of <strong>libc++ <code>std::string</code></strong> can be found at
 their <a href=https://github.com/llvm/llvm-project/blob/main/libcxx/include/string>repository</a>. Unfortunately, the source code is hard to read
 and undocumented. Laity <a href=#ref-libcpp-implementation>[10]</a> has posted an overview of their
-design and optimzation on for this implementation.&#160;<a href=#fnref:6 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script>
+design and optimisation for this implementation&#160;<a href=#fnref:6 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script>
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}]})'></script></section></div><footer class=footer><section class=container>©
 2021 -
 2023
