@@ -12,6 +12,5 @@ options(
   blogdown.method = "markdown",
   blogdown.author = "longlp",
   blogdown.ext = ".Rmd",
-  blogdown.subdir = "posts",
-  blogdown.hugo.version = "0.109.0"
+  blogdown.subdir = "posts"
 )

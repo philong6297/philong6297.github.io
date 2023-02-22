@@ -1,0 +1,11 @@
+/* Centered the figure */
+.content article p.caption {
+  text-align: center;
+  font-size: 80%;
+  margin: 0;
+}
+
+/* Align left for references */
+div#refs.references [id^='ref-'] p {
+  text-align: left;
+}

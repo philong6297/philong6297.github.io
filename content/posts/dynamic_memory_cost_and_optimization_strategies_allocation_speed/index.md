@@ -16,7 +16,7 @@ customPage:
   customJS:
     - js/reorder_refs.js
   customCSS:
-    - css/centered-figure.css
+    - css/custom.css
 # Rmd configurations
 link-citations: true
 link-bibliography: true
@@ -166,7 +166,7 @@ appropriate size**.
 
     > `free` is thread-safe: it behaves as though only accessing the
     > memory locations visible through its argument, and not any static
-    > storage.  
+    > storage.
     > A call to `free` that deallocates a region of memory
     > **synchronizes-with** a call to any subsequent allocation function
     > that allocates the same or a part of the same region of memory.
@@ -178,7 +178,7 @@ appropriate size**.
 
     > `malloc` is thread-safe: it behaves as though only accessing the
     > memory locations visible through its argument, and not any static
-    > storage.  
+    > storage.
     > A previous call to `free` or `realloc` that deallocates a region
     > of memory synchronizes-with a call to malloc that allocates the
     > same or a part of the same region of memory. This synchronization
@@ -376,7 +376,7 @@ blocks. This design leads to several improvements:
 - **Simple implementation opens up speed opportunities**:
   - **The allocator return only chunks of a (or multiple of) constant
     size**: memory-fragmentation-free. Any free element will be a
-    perfect fit for any request.  
+    perfect fit for any request.
     Also, since the size is already known (constant size), there is no
     need for chunk metadata that keeps the information about the
     chunk&rsquo;s size.
