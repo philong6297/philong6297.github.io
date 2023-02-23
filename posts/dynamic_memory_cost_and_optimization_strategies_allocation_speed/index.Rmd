@@ -16,7 +16,7 @@ customPage:
   customJS:
     - js/reorder_refs.js
   customCSS:
-    - css/centered-figure.css
+    - css/custom.css
 # Rmd configurations
 link-citations: true
 link-bibliography: true
