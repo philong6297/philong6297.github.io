@@ -1,3 +1,4 @@
+- write summary
 - taxinomies
 - search
 - suggest change post
