@@ -7,8 +7,20 @@ paginate: 20
 pygmentsCodeFences: true
 pygmentsCodeFencesGuessSyntax: true
 pygmentsStyle: bw
-theme: hugo-coder
+# Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
+pygmentsUseClasses: true
+theme: PaperMod
 title: LongLP
+copyright: Phi-Long Le
+
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+minify:
+  disableXML: true
+
 markup:
   tableOfContents:
     endLevel: 3
@@ -34,11 +46,7 @@ markup:
       hardWraps: false
       unsafe: true
       xhtml: false
-taxonomies:
-  author: authors
-  category: categories
-  series: series
-  tag: tags
+
 caches:
   assets:
     maxAge: 10m
@@ -52,44 +60,64 @@ caches:
     maxAge: 10m
   modules:
     maxAge: 10m
-params:
-  author: Phi-Long Le
-  avatarURL: images/ava.png
-  colorScheme: auto
-  commit: ""
-  customCSS: []
-  customJS: []
-  customSCSS: []
-  dateFormat: January 2, 2006
-  description: Personal blog
-  enableTwemoji: false
-  favicon_16: images/favicon-16x16.png
-  favicon_32: images/favicon-32x32.png
-  hideColorSchemeToggle: false
-  info:
-    - C++ Enthusiast
-  katex: true
-  keywords: blog,developer,personal
-  math: true
-  maxSeeAlsoItems: 10
-  rtl: false
-  since: 2021
-  touchIcon: images/apple-touch-icon.png
-  tocMinWordCount: 500
-  social:
-    - icon: fa fa-2x fa-github
-      name: Github
-      url: https://github.com/philong6297
-      weight: 1
-    - icon: fa fa-2x fa-linkedin
-      name: LinkedIn
-      url: https://www.linkedin.com/in/longlp/
-      weight: 2
+
 menu:
   main:
-    - name: Blog
-      url: posts/
-      weight: 1
-    - name: About
-      url: about/
-      weight: 2
+    - name: Archives
+      url: archives
+      weight: 5
+    - name: Tags
+      url: tags/
+      weight: 10
+
+params:
+  env: production # to enable google analytics, opengraph, twitter-cards and schema.
+  author: Phi-Long Le
+  DateFormat: "January 2, 2006"
+  defaultTheme: auto # dark, light
+  disableThemeToggle: false
+
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowWordCount: false
+  ShowRssButtonInSectionTermList: true
+  UseHugoToc: true
+  disableSpecial1stPost: false
+  disableScrollToTop: false
+  comments: false
+  hidemeta: false
+  hideSummary: false
+  showtoc: true
+  tocopen: true
+
+  assets:
+    disableHLJS: false # to disable highlight.js
+    # disableFingerprinting: true
+    favicon: images/favicon.ico
+    favicon16x16: images/favicon-16x16.png
+    favicon32x32: images/favicon-32x32.png
+    apple_touch_icon: images/apple-touch-icon.png
+
+  label:
+    text: "LongLP"
+
+  # home-info mode
+  homeInfoParams:
+    Title: Phi-Long Le
+    Content: C++ Enthusiast
+
+  socialIcons:
+    - name: LinkedIn
+      url: "https://www.linkedin.com/in/longlp/"
+    - name: github
+      url: "https://github.com/philong6297"
+    - name: Rss
+      url: "index.xml"
+
+  cover:
+    hidden: true # hide everywhere but not in structured data
+    hiddenInList: true # hide on list pages and home
+    hiddenInSingle: true # hide on single page
