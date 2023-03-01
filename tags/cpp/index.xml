@@ -1,6 +1,44 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>cpp on LongLP</title><link>https://philong6297.github.io/tags/cpp/</link><description>Recent content in cpp on LongLP</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 20 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://philong6297.github.io/tags/cpp/index.xml" rel="self" type="application/rss+xml"/><item><title>C++ Parallel STL is not yet for indiscriminate use</title><link>https://philong6297.github.io/posts/cpp_parallel_stl_is_not_yet_for_indiscriminate_use/</link><pubDate>Mon, 20 Feb 2023 00:00:00 +0000</pubDate><guid>https://philong6297.github.io/posts/cpp_parallel_stl_is_not_yet_for_indiscriminate_use/</guid><description>1 Abstract Link to heading As of today, the hardware usually comes with multi-core architectures. People need to rely on something other than hardware vendors to improve single-core performance.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>cpp on LongLP</title>
+    <link>https://philong6297.github.io/tags/cpp/</link>
+    <description>Recent content in cpp on LongLP</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>Phi-Long Le</copyright>
+    <lastBuildDate>Mon, 20 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://philong6297.github.io/tags/cpp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>C&#43;&#43; Parallel STL is not yet for indiscriminate use</title>
+      <link>https://philong6297.github.io/posts/cpp_parallel_stl_is_not_yet_for_indiscriminate_use/</link>
+      <pubDate>Mon, 20 Feb 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://philong6297.github.io/posts/cpp_parallel_stl_is_not_yet_for_indiscriminate_use/</guid>
+      <description>1 Abstract As of today, the hardware usually comes with multi-core architectures. People need to rely on something other than hardware vendors to improve single-core performance.
 The hardware free-lunch has been over for about 15 years.
 — Herb Sutter [1] —
-In order to follow this evolution, one needs to ensure that software is performance-compatible with multi-core machines. The software industry started with a trend of incorporating concurrency in action.</description></item><item><title>Dymanic Memory Cost and Optimization Strategies: Allocation Speed</title><link>https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/</link><pubDate>Sat, 31 Dec 2022 00:00:00 +0000</pubDate><guid>https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/</guid><description>1 Introduction Link to heading When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Usually, these programs create a monolith of memory with a fixed size (e.g. holding their memory in arrays or vectors) and typically access it linearly (but only sometimes so).</description></item><item><title>About inlining</title><link>https://philong6297.github.io/posts/about_inlining/</link><pubDate>Sat, 20 Nov 2021 00:00:00 +0000</pubDate><guid>https://philong6297.github.io/posts/about_inlining/</guid><description>Introduction Link to heading For me, every time I encounter the inline keyword in codebase and document myself about it, I still end up with the same conclusions:
+In order to follow this evolution, one needs to ensure that software is performance-compatible with multi-core machines. The software industry started with a trend of incorporating concurrency in action. As expected, ISO C++ has also started providing high-level abstractions for expressing parallelism, moving beyond simple threads and synchronization primitives: In 2017, the C++ standard introduced the so-called parallel algorithms.</description>
+    </item>
+    
+    <item>
+      <title>Dymanic Memory Cost and Optimization Strategies: Allocation Speed</title>
+      <link>https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/</link>
+      <pubDate>Sat, 31 Dec 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://philong6297.github.io/posts/dynamic_memory_cost_and_optimization_strategies_allocation_speed/</guid>
+      <description>1 Introduction When it comes to memory usage, there are (typically) two types of programs. The first type is programs that allocate memory in large blocks. Usually, they know precisely how much memory they will need and can allocate it in advance. Usually, these programs create a monolith of memory with a fixed size (e.g. holding their memory in arrays or vectors) and typically access it linearly (but only sometimes so).</description>
+    </item>
+    
+    <item>
+      <title>About inlining</title>
+      <link>https://philong6297.github.io/posts/about_inlining/</link>
+      <pubDate>Sat, 20 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://philong6297.github.io/posts/about_inlining/</guid>
+      <description>Introduction For me, every time I encounter the inline keyword in codebase and document myself about it, I still end up with the same conclusions:
 Inlining is often misused in development, which results in counter-productive and risky situations.
-I will try to summarize all the aspects which I believe we need to remember about inlining, giving pros, cons and situations when it can be used and when we should avoid.</description></item></channel></rss>
+I will try to summarize all the aspects which I believe we need to remember about inlining, giving pros, cons and situations when it can be used and when we should avoid.</description>
+    </item>
+    
+  </channel>
+</rss>
