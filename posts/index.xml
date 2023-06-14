@@ -7,7 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Phi-Long Le</copyright>
-    <lastBuildDate>Mon, 20 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://philong6297.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 12 Jun 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://philong6297.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>A Case Study on Performance Engineering: Optimizing C&#43;&#43; Binary Search</title>
+      <link>https://philong6297.github.io/posts/a_case_study_on_performance_engineering_optimizing_cpp_binary_search/</link>
+      <pubDate>Mon, 12 Jun 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://philong6297.github.io/posts/a_case_study_on_performance_engineering_optimizing_cpp_binary_search/</guid>
+      <description>1 Introduction In my opinion, the most captivating demonstrations of performance engineering are from the optimization of textbook algorithms—those that are commonly known and seemingly too simple to warrant any further enhancement. These optimizations, however, prove to be enlightening and offer valuable insights that can be applied across a wide range of contexts. Remarkably, such optimization opportunities are more abundant than one might anticipate.
+In this article, we will concentrate our attention on a fundamental algorithm known as binary search.</description>
+    </item>
+    
     <item>
       <title>C&#43;&#43; Parallel STL is not yet for indiscriminate use</title>
       <link>https://philong6297.github.io/posts/cpp_parallel_stl_is_not_yet_for_indiscriminate_use/</link>
