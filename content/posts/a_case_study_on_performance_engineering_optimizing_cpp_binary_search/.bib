@@ -1,0 +1,42 @@
+@article{khuong2017,
+  author     = {Khuong, Paul-Virak and Morin, Pat},
+  title      = {Array Layouts for Comparison-Based Searching},
+  year       = {2017},
+  issue_date = {2017},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {22},
+  issn       = {1084-6654},
+  url        = {https://doi.org/10.1145/3053370},
+  doi        = {10.1145/3053370},
+  abstract   = {We attempt to determine the best order and search algorithm to store n comparable data items in an array, A, of length n so we can, for any query value, x, quickly find the smallest value in A that is greater than or equal to x. In particular, we consider the important case where there are many such queries to the same array, A, which resides entirely in RAM. In addition to the obvious sorted order/binary search combination we consider the Eytzinger breadth-first-search (BFS) layout normally used for heaps, an implicit B-tree layout that generalizes the Eytzinger layout, and the van Emde Boas layout commonly used in the cache-oblivious algorithms literature.After extensive testing and tuning on a wide variety of modern hardware, we arrive at the conclusion that, for small values of n, sorted order, combined with a good implementation of binary search, is best. For larger values of n, we arrive at the surprising conclusion that the Eytzinger layout is usually the fastest. The latter conclusion is unexpected and goes counter to earlier experimental work by Brodal, Fagerberg, and Jacob (SODA 2003), who concluded that both the B-tree and van Emde Boas layouts were faster than the Eytzinger layout for large values of n. Our fastest C++ implementations, when compiled, use conditional moves to avoid branch mispredictions and prefetching to reduce cache latency.},
+  journal    = {ACM J. Exp. Algorithmics},
+  month      = {may},
+  articleno  = {1.3},
+  numpages   = {39},
+  keywords   = {data layouts, microprocessor architecture, pipelining, caching, Binary search}
+}
+
+@misc{Malte2023,
+  author       = {Malte Skarupke},
+  title        = {Beautiful Branchless Binary Search},
+  month        = {Apr. 27,},
+  year         = {2023},
+  howpublished = {PROBABLY DANCE},
+  url          = {https://probablydance.com/2023/04/27/beautiful-branchless-binary-search/}
+}
+
+@article{Gerald1984,
+  issn      = {0364765X, 15265471},
+  url       = {http://www.jstor.org/stable/3689501},
+  abstract  = {A widely used class of binary trees is studied in order to provide information useful in evaluating algorithms based on this storage structure. A closed form counting formula for the number of binary trees with n nodes and height k is developed and restated as a recursion more useful computationally. A generating function for the number of nodes given height is developed and used to find the asymptotic distribution of binary trees. An asymptotic probability distribution for height given the number of nodes is derived based on equally likely binary trees. This is compared with a similar result for general trees. Random binary trees (those resulting from a binary tree sorting algorithm applied to random strings of symbols) are counted in terms of the mapping of permutations of n symbols to binary trees of height k. An explicit formula for this number is given with an equivalent recursive definition for computational use. A generating function is derived for the number of symbols given height. Lower and upper bounds on random binary tree height are developed and shown to approach one another asymptotically as a function of n, providing a limiting expression for the expected height. The random binary trees are examined further to provide expressions for the expectations of the number of vacancies at each level, the distribution of vacancies over all levels, the comparisons required for insertion of a new random symbol, the fraction of nodes occupied at a particular level, the number of leaves, the number of single vacancies at each level, and the number of twin vacancies at each level. A random process is defined for the number of symbols required to grow a tree exceeding any given height. Finally, an appendix is given with sample tabulations and figures of the distributions.},
+  author    = {Gerald G. Brown and Bruno O. Shubert},
+  journal   = {Mathematics of Operations Research},
+  number    = {1},
+  pages     = {43--65},
+  publisher = {INFORMS},
+  title     = {On Random Binary Trees},
+  urldate   = {2023-06-13},
+  volume    = {9},
+  year      = {1984}
+}
